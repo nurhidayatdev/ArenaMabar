@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <!-- bg-slate-900 rounded-xl (similar to #0f172a, rx="8") -->
+  <rect width="40" height="40" rx="10" fill="#0f172a"/>
+  <!-- inner diamond border-white -->
+  <rect x="20" y="8" width="16" height="16" fill="none" stroke="#ffffff" stroke-width="3" rx="2" transform="rotate(45 20 8)" />
+</svg>

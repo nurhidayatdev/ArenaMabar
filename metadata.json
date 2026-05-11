@@ -1,0 +1,9 @@
+{
+  "name": "ArenaMabar - Cari Lapangan",
+  "description": "A neo-brutalist app to find and book sports fields like futsal and badminton easily using AI.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ],
+  "majorCapabilities": []
+}
