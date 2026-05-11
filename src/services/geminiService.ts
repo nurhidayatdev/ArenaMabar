@@ -1,8 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { SearchState } from "../context/SearchContext";
 
-const apiKey = process.env.GEMINI_API_KEY || "";
-const ai = new GoogleGenAI({ apiKey });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const analyzeSchema = {
   type: Type.OBJECT,
@@ -41,7 +40,7 @@ ${JSON.stringify(messages, null, 2)}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
     return response.text || "Waah maaf, Coach lagi nge-blank nih, coba ulangi lagi ya!";
@@ -63,7 +62,7 @@ Bahasa yang digunakan: Gaul tapi profesional, to the point.
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -142,7 +141,7 @@ Buat data JSON terkait preferensi. JANGAN mencari lapangan, cukup identifikasi o
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
