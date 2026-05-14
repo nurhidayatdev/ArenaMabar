@@ -1,12 +1,14 @@
-import { BrainCircuit, MessageCircle, SlidersHorizontal, Star, BadgeCheck, Navigation, Loader2, ArrowLeft, MapPin } from "lucide-react";
+import { BrainCircuit, MessageCircle, SlidersHorizontal, Star, BadgeCheck, Navigation, Loader2, ArrowLeft, MapPin, Clock, Car, Bike, Footprints, RefreshCw, User } from "lucide-react";
 import React, { useEffect, useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useSearchContext } from "../context/SearchContext";
 import { fetchRecommendations, RadarRecommendation } from "../services/geminiService";
 import { Map, AdvancedMarker, Pin, useMapsLibrary, useMap } from "@vis.gl/react-google-maps";
+import { useTranslation } from "react-i18next";
 
 export default function RadarResults() {
-  const { searchState } = useSearchContext();
+  const { t } = useTranslation();
+  const { searchState, updateSearchState } = useSearchContext();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const initialTab = (queryParams.get("tab") as "venue" | "community") || "venue";
@@ -15,29 +17,43 @@ export default function RadarResults() {
   const [data, setData] = useState<any>(null); // Using any temporarily for flexible data
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<"distance" | "rating">("distance");
+  const [isOpenOnly, setIsOpenOnly] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  const [travelMode, setTravelMode] = useState<"DRIVE" | "TWO_WHEELER" | "WALK">("TWO_WHEELER");
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactPhoneUrl, setContactPhoneUrl] = useState("");
+  const [showNoNumberModal, setShowNoNumberModal] = useState(false);
+  
+  const [manualLat, setManualLat] = useState<number | null>(null);
+  const [manualLng, setManualLng] = useState<number | null>(null);
+  const [showRepositionPopup, setShowRepositionPopup] = useState(false);
+  
+  const [showTutorialModal, setShowTutorialModal] = useState(() => {
+    return sessionStorage.getItem("radarTutorialShown") !== "true";
+  });
   
   const placesLib = useMapsLibrary("places");
+  const map = useMap("DEMO_MAP_ID");
+
+  useEffect(() => {
+    if (searchState.latitude) setManualLat(searchState.latitude);
+    if (searchState.longitude) setManualLng(searchState.longitude);
+  }, [searchState.latitude, searchState.longitude]);
 
   const handleContactVenue = () => {
     if (selectedIndex !== null && sortedResults?.[selectedIndex]) {
         const venue = sortedResults[selectedIndex];
         if (venue.phone) {
-            const cleanedPhone = venue.phone.replace(/[^0-9]/g, '');
-            window.open(`https://wa.me/${cleanedPhone}?text=Halo,%20saya%20ingin%20tanya%20jadwal%20kosong`, "_blank", "noopener,noreferrer");
+            let cleanedPhone = venue.phone.replace(/[^0-9]/g, '');
+            // If it starts with 0, replace with 62 (Indonesia country code)
+            if (cleanedPhone.startsWith('0')) {
+              cleanedPhone = '62' + cleanedPhone.substring(1);
+            }
+            const message = encodeURIComponent(`Halo, saya ingin tanya jadwal kosong di ${venue.name}`);
+            setContactPhoneUrl(`https://wa.me/${cleanedPhone}?text=${message}`);
+            setShowContactModal(true);
         } else {
-            alert("Maaf, nomor WhatsApp untuk tempat ini tidak tersedia.");
-        }
-    }
-  };
-
-  const handleDirections = () => {
-    if (selectedIndex !== null && sortedResults?.[selectedIndex]) {
-        const venue = sortedResults[selectedIndex];
-        if (venue.googleMapsURI) {
-            window.open(venue.googleMapsURI, "_blank", "noopener,noreferrer");
-        } else {
-            window.open(`https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lng}`, "_blank", "noopener,noreferrer");
+            setShowNoNumberModal(true);
         }
     }
   };
@@ -62,7 +78,7 @@ export default function RadarResults() {
 
         const searchOptions: any = {
           textQuery: query,
-          fields: ['displayName', 'location', 'formattedAddress', 'rating', 'userRatingCount', 'nationalPhoneNumber', 'googleMapsURI', 'websiteURI', 'types'],
+          fields: ['displayName', 'location', 'formattedAddress', 'rating', 'userRatingCount', 'nationalPhoneNumber', 'googleMapsURI', 'websiteURI', 'types', 'photos', 'regularOpeningHours'],
           maxResultCount: 20, // get more results to allow filtering
         };
 
@@ -152,6 +168,15 @@ export default function RadarResults() {
                 dist = Math.random() * 5 + 1; // mock if no gps
             }
 
+            let photoUri = "";
+            if (place.photos && place.photos.length > 0) {
+              if (typeof place.photos[0].getURI === 'function') {
+                photoUri = place.photos[0].getURI({maxWidth: 600}) || "";
+              } else if (typeof place.photos[0].getUrl === 'function') {
+                photoUri = place.photos[0].getUrl({maxWidth: 600}) || "";
+              }
+            }
+
             const randomFacilities = randomFacilitiesOptions[index % randomFacilitiesOptions.length];
             const randomTips = randomTipsOptions[index % randomTipsOptions.length];
             const generatedAccuracy = Math.floor(Math.random() * 10) + 90; // 90-99%
@@ -159,6 +184,7 @@ export default function RadarResults() {
 
             return {
                 name: place.displayName || "Tempat Olahraga",
+                photoUri: photoUri,
                 lat: Number(lat),
                 lng: Number(lng),
                 address: place.formattedAddress,
@@ -172,6 +198,8 @@ export default function RadarResults() {
                 rawDistance: dist,
                 status: statusOptions[index % statusOptions.length],
                 accuracy: generatedAccuracy,
+                openingHours: place.regularOpeningHours?.weekdayDescriptions,
+                isOpen: place.regularOpeningHours?.openNow,
                 summary: `Berdasarkan ulasan dan data Maps, ${place.displayName || "tempat ini"} adalah salah satu opsi terdekat.`,
                 tips: randomTips,
                 facilities: randomFacilities
@@ -213,60 +241,83 @@ export default function RadarResults() {
 
   const sortedResults = React.useMemo(() => {
     if (!data?.results) return [];
-    const results = [...data.results];
-    if (sortBy === "distance") {
-      results.sort((a, b) => a.rawDistance - b.rawDistance);
-    } else {
-      results.sort((a, b) => b.ratingValue - a.ratingValue);
+    let results = [...data.results];
+    
+    // Filter by "Buka Sekarang" if enabled
+    if (isOpenOnly) {
+      results = results.filter(r => r.isOpen === true);
     }
-    return results;
-  }, [data?.results, sortBy]);
+
+    // Add estimated time to each result based on current travelMode
+    const resultsWithTime = results.map(r => {
+      let minsPerKm = 2; // Default DRIVE (30km/h)
+      if (travelMode === "TWO_WHEELER") minsPerKm = 1.5; // (40km/h)
+      if (travelMode === "WALK") minsPerKm = 12; // (5km/h)
+      
+      const estimatedMins = Math.max(1, Math.round(r.rawDistance * minsPerKm));
+      return { ...r, estimatedMins };
+    });
+
+    if (sortBy === "distance") {
+      resultsWithTime.sort((a, b) => a.rawDistance - b.rawDistance);
+    } else {
+      resultsWithTime.sort((a, b) => b.ratingValue - a.ratingValue);
+    }
+    return resultsWithTime;
+  }, [data?.results, sortBy, travelMode]);
+
+  useEffect(() => {
+    if (map && selectedIndex !== null && sortedResults?.[selectedIndex]) {
+      const venue = sortedResults[selectedIndex];
+      map.panTo({ lat: venue.lat, lng: venue.lng });
+    }
+  }, [selectedIndex, sortedResults, map]);
 
   if (loading || !data) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-6rem)]">
-        <Loader2 className="w-16 h-16 animate-spin text-indigo-600 mb-4" />
-        <h2 className="text-2xl font-bold animate-pulse text-slate-900">AI is scanning the area...</h2>
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100dvh-6rem)]">
+        <Loader2 className="w-16 h-16 animate-spin text-indigo-600 dark:text-indigo-400 mb-4" />
+        <h2 className="text-2xl font-bold animate-pulse text-slate-900 dark:text-slate-100">{t("radar.scanning")}</h2>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-6rem)] w-full max-w-[1440px] mx-auto p-4 gap-6 relative z-10">
-      <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden gap-6">
+    <div className="flex flex-col lg:h-[calc(100dvh-6rem)] min-h-[calc(100dvh-6rem)] w-full max-w-[1440px] mx-auto p-4 lg:p-6 lg:pb-2 gap-6 relative z-10">
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0 gap-6">
             {/* Left Pane: Map Area */}
             <section className="w-full lg:flex-1 lg:w-1/2 flex flex-col gap-4 min-h-[350px] lg:min-h-0">
-              <div className="bg-white rounded-[24px] border-2 border-slate-900 p-3 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex justify-between items-center z-20">
+              <div className="bg-white dark:bg-slate-800 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 p-3 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex justify-between items-center z-20 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600">
+                   <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                      <Navigation className="w-4 h-4 stroke-[2]" />
                    </div>
-                   <h2 className="font-bold text-sm md:text-base text-slate-900">{data.radarArea}</h2>
+                   <h2 className="font-bold text-sm md:text-base text-slate-900 dark:text-slate-100">{data.radarArea}</h2>
                 </div>
                 <div className="flex gap-2">
-                  <span className="bg-slate-900 text-white rounded-full px-3 py-1 font-semibold text-xs tracking-wide">
+                  <span className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full px-3 py-1 font-semibold text-xs tracking-wide max-w-[120px] sm:max-w-[150px] truncate" title={data.sportType}>
                      {data.sportType}
                   </span>
                   <div className="relative">
                     <button 
                       onClick={() => setShowFilter(!showFilter)}
-                      className="bg-white rounded-full px-3 py-1 border-2 border-slate-900 font-semibold text-xs flex items-center gap-1 hover:bg-slate-50 transition-colors"
+                      className="bg-white dark:bg-slate-700 rounded-full px-3 py-1 border-2 border-slate-900 dark:border-slate-600 font-semibold text-xs flex items-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-600text-slate-900 dark:text-slate-100 transition-colors"
                     >
-                      <SlidersHorizontal className="w-3 h-3 stroke-[2]" /> Urutkan
+                      <SlidersHorizontal className="w-3 h-3 stroke-[2]" /> {t("radar.btn_sort")}
                     </button>
                     {showFilter && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border-2 border-slate-900 rounded-xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] z-50 overflow-hidden">
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-100 rounded-xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 overflow-hidden">
                         <button 
                           onClick={() => { setSortBy("distance"); setShowFilter(false); setSelectedIndex(null); }}
-                          className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 border-b-2 border-slate-100 ${sortBy === "distance" ? "bg-indigo-50 text-indigo-700" : "text-slate-700"}`}
+                          className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 border-b-2 border-slate-100 dark:border-slate-100 ${sortBy === "distance" ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400" : "text-slate-700 dark:text-slate-300"}`}
                         >
-                          📍 Jarak Terdekat
+                          {t("radar.sort.distance")}
                         </button>
                         <button 
                           onClick={() => { setSortBy("rating"); setShowFilter(false); setSelectedIndex(null); }}
-                          className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 ${sortBy === "rating" ? "bg-amber-50 text-amber-700" : "text-slate-700"}`}
+                          className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 ${sortBy === "rating" ? "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" : "text-slate-700 dark:text-slate-300"}`}
                         >
-                          ⭐ Rating Tertinggi
+                          {t("radar.sort.rating")}
                         </button>
                       </div>
                     )}
@@ -274,17 +325,59 @@ export default function RadarResults() {
                 </div>
               </div>
 
-              <div className="flex-1 rounded-[24px] border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] bg-slate-100 relative overflow-hidden group min-h-[300px]">
+              {/* Filter Row */}
+              <div className="flex gap-2 mb-2">
+                <button 
+                   onClick={() => {
+                     setIsOpenOnly(!isOpenOnly);
+                     setSelectedIndex(null);
+                   }}
+                   className={`flex-1 py-2 px-4 rounded-xl border-2 border-slate-900 dark:border-slate-100 font-bold text-xs transition-all flex items-center justify-center gap-2 ${
+                     isOpenOnly 
+                      ? "bg-emerald-400 dark:bg-emerald-600 dark:text-slate-100 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] translate-y-[-2px] dark:border-emerald-600" 
+                      : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                   }`}
+                >
+                  <Clock className={`w-3 h-3 ${isOpenOnly ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`} />
+                  {isOpenOnly ? "DIFILTER: BUKA SEKARANG" : "FILTER: BUKA SEKARANG"}
+                </button>
+              </div>
+
+              <div className="flex-1 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] bg-slate-100 dark:bg-slate-800 relative overflow-hidden group min-h-[300px] mb-2 mr-2">
                 {sortedResults && sortedResults.length > 0 ? (
                   <div className="absolute inset-0 w-full h-full">
                     <Map
-                      defaultCenter={{ lat: sortedResults[0]?.lat || -6.2, lng: sortedResults[0]?.lng || 106.8 }}
+                      defaultCenter={{ lat: manualLat || sortedResults[0]?.lat || -6.2, lng: manualLng || sortedResults[0]?.lng || 106.8 }}
                       defaultZoom={13}
                       mapId="DEMO_MAP_ID"
                       internalUsageAttributionIds={['gmp_mcp_codeassist_v1_aistudio']}
                       style={{ width: '100%', height: '100%' }}
                       disableDefaultUI={false}
+                      onClick={(e) => {
+                        if (e.detail.latLng) {
+                          setManualLat(e.detail.latLng.lat);
+                          setManualLng(e.detail.latLng.lng);
+                          setShowRepositionPopup(true);
+                        }
+                      }}
                     >
+                      {(manualLat && manualLng) && (
+                        <AdvancedMarker
+                          position={{ lat: manualLat, lng: manualLng }}
+                          draggable={true}
+                          onDragEnd={(e) => {
+                            if (e.latLng) {
+                              setManualLat(e.latLng.lat());
+                              setManualLng(e.latLng.lng());
+                              setShowRepositionPopup(true);
+                            }
+                          }}
+                        >
+                          <div className="w-10 h-10 bg-indigo-600 rounded-full border-[3px] border-white shadow-[0_0_15px_rgba(0,0,0,0.5)] flex items-center justify-center animate-bounce">
+                             <User className="w-5 h-5 text-white" />
+                          </div>
+                        </AdvancedMarker>
+                      )}
                       {sortedResults.map((result: any, idx: number) => (
                         <AdvancedMarker
                           key={idx}
@@ -299,49 +392,85 @@ export default function RadarResults() {
                     </Map>
                   </div>
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-slate-500 font-medium">
-                    Peta tidak dapat dimuat atau tidak ada hasil di area ini. Pastikan Google Maps API Key Anda memiliki akses ke Places API.
+                  <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-slate-500 dark:text-slate-400 font-medium">
+                    {t("radar.error.map")}
                   </div>
                 )}
               </div>
             </section>
 
             {/* Right Pane: AI Review Summarizer & Specs - Bento Layout */}
-            <section className="flex-1 lg:w-1/2 flex flex-col gap-4 relative overflow-y-auto pb-4">
+            <section className="flex-1 lg:w-1/2 flex flex-col gap-4 relative overflow-y-auto pb-4 lg:pb-2 pr-2">
               {selectedIndex === null ? (
                 <div className="flex flex-col gap-4">
-                  <div className="bg-indigo-600 rounded-[24px] border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] p-5 text-white mb-2">
-                     <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold mb-3">
-                       <BrainCircuit className="w-3 h-3" />
-                       PENCARIANMU
+                  <div className="bg-indigo-600 dark:bg-indigo-800 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] p-5 text-white mb-2 transition-colors relative overflow-hidden">
+                     {/* Highlight decoration */}
+                     <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                       <BrainCircuit className="w-24 h-24 text-white" />
                      </div>
-                     <p className="text-white text-sm font-semibold italic mb-4 opacity-90 border-l-2 border-white/50 pl-3">
-                       "{searchState.vibeText}"
-                     </p>
-                     <h1 className="font-bold text-xl leading-tight text-white m-0 tracking-tight">
-                       Ditemukan {sortedResults.length} Lapangan<br />Terdekat & Terbaik
-                     </h1>
+                     <div className="inline-flex items-center gap-2 bg-indigo-500/50 dark:bg-indigo-700/50 border border-white/20 px-3 py-1 rounded-full text-[10px] font-bold mb-3 backdrop-blur-sm relative z-10 shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]">
+                       <BrainCircuit className="w-3 h-3 text-amber-300" />
+                       <span className="text-amber-300">DIANALISIS OLEH AI</span>
+                     </div>
+                     <div className="bg-white/10 dark:bg-black/20 p-4 rounded-xl border border-white/20 mb-4 relative z-10">
+                       <p className="text-white text-sm font-medium italic opacity-100">
+                         "{searchState.vibeText}"
+                       </p>
+                     </div>
+                     <h1 className="font-bold text-xl leading-tight text-white m-0 tracking-tight relative z-10">
+                       {t("radar.results.found", {count: sortedResults.length})}<br />{t("radar.results.best")}
+                      </h1>
+
+                      {/* Travel Mode Selector */}
+                      <div className="flex gap-2 mt-4">
+                        {[
+                          { id: "DRIVE", icon: Car, label: "Mobil" },
+                          { id: "TWO_WHEELER", icon: Bike, label: "Motor" },
+                          { id: "WALK", icon: Footprints, label: "Jalan" }
+                        ].map((mode) => (
+                          <button
+                            key={mode.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTravelMode(mode.id as any);
+                            }}
+                            className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-xl border-2 border-slate-900 dark:border-slate-100 transition-all ${
+                              travelMode === mode.id 
+                                ? "bg-indigo-300 dark:bg-indigo-400 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] translate-y-[-2px] text-slate-900" 
+                                : "bg-indigo-700/30 border-white/20 text-white/70 hover:bg-indigo-700/50 text-white"
+                            }`}
+                          >
+                            <mode.icon className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase text-center">{mode.label}</span>
+                          </button>
+                        ))}
+                      </div>
                   </div>
                   {sortedResults.map((result, idx) => (
                     <div 
                       key={idx}
                       onClick={() => setSelectedIndex(idx)}
-                      className="bg-white rounded-[24px] border-2 border-slate-900 p-4 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] transition-all cursor-pointer flex flex-col gap-3"
+                      className="bg-white dark:bg-slate-800 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 p-4 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] transition-all cursor-pointer flex flex-col gap-3"
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-bold text-base text-slate-900">{result.name}</h3>
-                          <div className="flex items-center gap-2 mt-1 text-slate-500 font-semibold text-xs">
-                             <MapPin className="w-3 h-3" /> {result.distanceKm} KM
+                          <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">{result.name}</h3>
+                          <div className="flex items-center gap-3 mt-1 text-slate-500 dark:text-slate-400 font-semibold text-xs">
+                             <div className="flex items-center gap-1">
+                               <MapPin className="w-3 h-3" /> {result.distanceKm} KM
+                             </div>
+                             <div className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+                               <Clock className="w-3 h-3" /> {result.estimatedMins} MIN
+                             </div>
                           </div>
                         </div>
-                        <div className="bg-amber-300 text-slate-900 rounded-xl px-2 py-1 font-bold text-xs">
+                        <div className="bg-amber-300 dark:bg-amber-500 text-slate-900 rounded-xl px-2 py-1 font-bold text-xs mt-1">
                           {result.ratingText}
                         </div>
                       </div>
                       <div className="flex gap-2 flex-wrap">
-                        <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-semibold">{result.status}</span>
-                        <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-semibold">Akurasi {result.accuracy}%</span>
+                        <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-md text-[10px] font-semibold">{result.status}</span>
+                        <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-md text-[10px] font-semibold">Akurasi {result.accuracy}%</span>
                       </div>
                     </div>
                   ))}
@@ -350,45 +479,53 @@ export default function RadarResults() {
                 <div className="flex flex-col gap-4">
                   <button 
                     onClick={() => setSelectedIndex(null)}
-                    className="self-start bg-white border-2 border-slate-900 rounded-full p-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:bg-slate-50 transition-colors mb-2"
+                    className="self-start bg-amber-400 hover:bg-amber-500 text-slate-900 border-2 border-slate-900 dark:border-slate-100 rounded-xl px-4 py-2 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] transition-all mb-2 flex items-center gap-2 uppercase font-black text-sm tracking-wider"
                   >
-                    <ArrowLeft className="w-5 h-5 text-slate-900" />
+                    <ArrowLeft className="w-5 h-5 stroke-[3]" /> KEMBALI
                   </button>
                   
                   {/* Main Result Card */}
-                  <article className="bg-indigo-600 rounded-[24px] border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col text-white flex-shrink-0">
+                  <article className="bg-indigo-600 dark:bg-indigo-800 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col text-white flex-shrink-0 overflow-hidden">
+              {sortedResults[selectedIndex]?.photoUri && (
+                <div className="w-full h-48 bg-slate-200 dark:bg-slate-700 border-b-2 border-slate-900 dark:border-slate-100 relative">
+                  <img src={sortedResults[selectedIndex]?.photoUri} alt={sortedResults[selectedIndex]?.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                </div>
+              )}
               <div className="p-4 pb-2">
                 <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold mb-3">
                   <BrainCircuit className="w-3 h-3" />
-                  AI OPTIMIZED SUMMARY
+                  {t("radar.detail.summary")}
                 </div>
                 <h1 className="font-bold text-2xl leading-tight text-white m-0 tracking-tight">
-                  {sortedResults[selectedIndex].name}
+                  {sortedResults[selectedIndex]?.name}
                 </h1>
               </div>
               
               <div className="p-4 pt-2 flex flex-col gap-4">
                 <div className="flex flex-wrap gap-2">
-                  <span className="bg-white text-slate-900 rounded-full px-3 py-1 font-bold text-xs">
-                    Rating: {sortedResults[selectedIndex].ratingText}
+                  <span className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-full px-3 py-1 font-bold text-xs border border-transparent dark:border-slate-600">
+                    Rating: {sortedResults[selectedIndex]?.ratingText}
                   </span>
-                  <span className="bg-amber-300 text-slate-900 rounded-full px-3 py-1 font-bold text-xs">
-                    {sortedResults[selectedIndex].status}
+                  <span className="bg-amber-300 dark:bg-amber-500 text-slate-900 rounded-full px-3 py-1 font-bold text-xs border border-transparent dark:border-amber-600">
+                    {sortedResults[selectedIndex]?.status}
                   </span>
-                  <span className="bg-emerald-300 text-slate-900 rounded-full px-3 py-1 font-bold text-xs flex items-center gap-1">
-                    <MapPin className="w-3 h-3" /> {sortedResults[selectedIndex].distanceKm} KM
+                  <span className="bg-emerald-300 dark:bg-emerald-500 text-slate-900 rounded-full px-3 py-1 font-bold text-xs flex items-center gap-1 border border-transparent dark:border-emerald-600">
+                    <MapPin className="w-3 h-3" /> {sortedResults[selectedIndex]?.distanceKm} KM
+                  </span>
+                  <span className="bg-indigo-300 dark:bg-indigo-400 text-slate-900 rounded-full px-3 py-1 font-bold text-xs flex items-center gap-1 border border-transparent dark:border-indigo-500">
+                    <Clock className="w-3 h-3" /> {sortedResults[selectedIndex]?.estimatedMins} MENIT
                   </span>
                 </div>
 
                 <p className="font-medium text-sm text-indigo-100">
-                  {sortedResults[selectedIndex].summary}
+                  {sortedResults[selectedIndex]?.summary}
                 </p>
                 
                 <div className="flex items-center justify-between mt-1">
                   <div className="flex items-center gap-2 text-emerald-300">
                     <BadgeCheck className="w-4 h-4 stroke-[2]" />
                     <span className="font-bold text-[10px] uppercase tracking-wider">
-                      Akurasi {sortedResults[selectedIndex].accuracy}%
+                      Akurasi {sortedResults[selectedIndex]?.accuracy}%
                     </span>
                   </div>
                   <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center">
@@ -399,30 +536,65 @@ export default function RadarResults() {
             </article>
 
             {/* Info Grid (Bento style sub-cards) */}
-            <div className="grid grid-cols-2 gap-4 flex-shrink-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-shrink-0">
+              {/* Address & Hours Card */}
+              <div className="md:col-span-2 bg-slate-50 dark:bg-slate-800 rounded-[24px] p-4 border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col gap-3 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl text-emerald-600 dark:text-emerald-400">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{t("radar.detail.address")}</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5">{sortedResults[selectedIndex]?.address || "-"}</p>
+                    </div>
+                  </div>
+                  
+                  {sortedResults[selectedIndex]?.openingHours && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-xl text-amber-600 dark:text-amber-400">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                      <div className="w-full">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">JAM OPERASIONAL</p>
+                        <div className="grid grid-cols-1 gap-0.5 mt-1">
+                          {sortedResults[selectedIndex].openingHours.map((hour: string, i: number) => {
+                             const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+                             const isToday = hour.toLowerCase().includes(today.toLowerCase());
+                             return (
+                               <p key={i} className={`text-[10px] leading-tight ${isToday ? 'font-black text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 font-medium'}`}>
+                                 {hour}
+                               </p>
+                             );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+              </div>
+
               {/* Tips Card */}
-              <div className="bg-amber-300 rounded-[24px] p-4 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col justify-between">
+              <div className="bg-amber-300 dark:bg-amber-500 rounded-[24px] p-4 border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col justify-between">
                   <div className="flex justify-between items-start mb-2">
-                    <div className="p-1.5 bg-white/50 rounded-lg text-sm">🚧</div>
+                    <div className="p-1.5 bg-white/50 dark:bg-white/20 rounded-lg text-sm">🚧</div>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Peringatan Tips</p>
-                    <p className="text-xs font-bold text-slate-900 mt-1">{sortedResults[selectedIndex].tips}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-900">{t("radar.detail.tips")}</p>
+                    <p className="text-xs font-bold text-slate-900 mt-1">{sortedResults[selectedIndex]?.tips}</p>
                   </div>
               </div>
 
               {/* Facilities Card */}
-              <div className="bg-white rounded-[24px] p-4 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col justify-between">
+              <div className="bg-white dark:bg-slate-800 rounded-[24px] p-4 border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col justify-between transition-colors">
                   <div className="flex justify-between items-start mb-2">
-                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                      <Star className="w-4 h-4 fill-emerald-600" />
+                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                      <Star className="w-4 h-4 fill-emerald-600 dark:fill-emerald-400" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Fasilitas unggulan</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{t("radar.detail.facilities")}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {sortedResults[selectedIndex].facilities.map((fac: any, i: number) => (
-                        <span key={i} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-[10px] font-semibold">{fac}</span>
+                      {sortedResults[selectedIndex]?.facilities?.map((fac: any, i: number) => (
+                        <span key={i} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">{fac}</span>
                       ))}
                     </div>
                   </div>
@@ -431,22 +603,136 @@ export default function RadarResults() {
 
             {/* CTA Button */}
             <div className="mt-2 flex-shrink-0 flex gap-4">
-              <button onClick={handleContactVenue} className="flex-1 bg-emerald-500 text-white rounded-[24px] p-4 font-bold flex flex-col items-center justify-center group shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:bg-emerald-600 transition-colors">
+              <button onClick={handleContactVenue} className="flex-1 bg-emerald-500 text-white rounded-[24px] p-4 font-bold flex flex-col items-center justify-center group shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:bg-emerald-600 transition-colors">
                 <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                   <MessageCircle className="w-4 h-4 stroke-[2]" />
                 </div>
-                <span className="text-xs">HUBUNGI GOR</span>
+                <span className="text-xs">{t("radar.detail.btn_contact")}</span>
               </button>
-              <button onClick={handleDirections} className="flex-1 bg-slate-900 text-white rounded-[24px] p-4 font-bold flex flex-col items-center justify-center group shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:bg-slate-800 transition-colors">
-                <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
+              <a 
+                href={sortedResults[selectedIndex]?.googleMapsURI || `https://www.google.com/maps/dir/?api=1&destination=${sortedResults[selectedIndex]?.lat},${sortedResults[selectedIndex]?.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-[24px] p-4 font-bold flex flex-col items-center justify-center group shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors"
+                title={t("radar.detail.btn_route")}
+              >
+                <div className="w-8 h-8 bg-white/20 dark:bg-black/10 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                   <Navigation className="w-4 h-4 stroke-[2]" />
                 </div>
-                <span className="text-xs">PETUNJUK ARAH</span>
-              </button>
+                <span className="text-xs">{t("radar.detail.btn_route")}</span>
+              </a>
             </div>
           </div>
         )}
       </section>
+
+      {/* WA Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+            <h3 className="font-black text-xl mb-1 uppercase tracking-tighter text-amber-500">Peringatan!</h3>
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 bg-slate-100 dark:bg-slate-700 p-2 rounded-lg border border-slate-200 dark:border-slate-600">{selectedIndex !== null ? sortedResults[selectedIndex]?.name : ""}</p>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-pre-line mb-6">
+              {t("radar.alert.wa_warning")}
+            </p>
+            <div className="flex gap-3 mt-auto">
+                <button 
+                  onClick={() => setShowContactModal(false)}
+                  className="flex-1 px-4 py-3 bg-red-400 hover:bg-red-500 text-slate-900 font-bold rounded-xl border-2 border-slate-900 dark:border-slate-100 transition-colors shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255, 255, 255,1)]"
+                >
+                  Batal
+                </button>
+                <a 
+                  href={contactPhoneUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setShowContactModal(false)}
+                  className="flex-1 px-4 py-3 bg-emerald-400 hover:bg-emerald-500 text-slate-900 font-bold rounded-xl border-2 border-slate-900 dark:border-slate-100 transition-colors text-center shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255, 255, 255,1)]"
+                >
+                  Lanjut WA
+                </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Number Modal */}
+      {showNoNumberModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
+            <h3 className="font-black text-xl mb-3 text-slate-900 dark:text-slate-100 uppercase">Maaf</h3>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-pre-line mb-6">
+              {t("radar.alert.wa_no_number")}
+            </p>
+            <button 
+              onClick={() => setShowNoNumberModal(false)}
+              className="w-full px-4 py-3 bg-fuchsia-400 hover:bg-fuchsia-500 text-slate-900 font-bold rounded-xl border-2 border-slate-900 dark:border-slate-100 transition-colors shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255, 255, 255,1)]"
+            >
+              OK, Mengerti
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tutorial Modal */}
+      {showTutorialModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
+            <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4">
+               <MapPin className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-slate-100 uppercase tracking-tighter">Lokasi Kurang Pas?</h3>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-pre-line mb-6">
+              Jika hasil pencarian kurang akurat, pindahkan <span className="font-bold text-slate-900 dark:text-slate-100 bg-indigo-100 dark:bg-indigo-900/50 px-1 rounded">pin biru</span> langsung di peta ke lokasi aslimu. Lalu, konfirmasi popup yang muncul untuk memperbarui hasil!
+            </p>
+            <button 
+              onClick={() => {
+                setShowTutorialModal(false);
+                sessionStorage.setItem("radarTutorialShown", "true");
+              }}
+              className="w-full px-4 py-3 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold rounded-xl border-2 border-slate-900 dark:border-slate-100 transition-colors shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255, 255, 255,1)]"
+            >
+              OK, Mengerti!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Reposition Confirmation Popup */}
+      {showRepositionPopup && manualLat && manualLng && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
+            <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4">
+               <RefreshCw className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-slate-100 uppercase tracking-tighter">
+              Cari Area Sini?
+            </h3>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-6">
+              Mulai pencarian ulang untuk mendapatkan lapangan di sekitar lokasi pin yang baru.
+            </p>
+            <div className="flex gap-3 w-full">
+               <button 
+                onClick={() => {
+                  setShowRepositionPopup(false);
+                }}
+                className="flex-1 px-4 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-100 font-bold rounded-xl border-2 border-slate-900 dark:border-slate-100 transition-colors shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={() => {
+                  updateSearchState({ latitude: manualLat, longitude: manualLng });
+                  setShowRepositionPopup(false);
+                }}
+                className="flex-[2] flex justify-center items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl border-2 border-slate-900 dark:border-slate-100 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" /> Yakin, Cari
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   </div>
 );

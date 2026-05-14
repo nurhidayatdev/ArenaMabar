@@ -6,6 +6,8 @@ export interface SearchState {
   recommendedSport: string | null;
   latitude: number | null;
   longitude: number | null;
+  userCity: string | null;
+  userAddress: string | null;
 }
 
 interface SearchContextType {
@@ -22,6 +24,8 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     recommendedSport: null,
     latitude: null,
     longitude: null,
+    userCity: null,
+    userAddress: null,
   });
 
   const updateSearchState = useCallback((updates: Partial<SearchState>) => {

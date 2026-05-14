@@ -40,12 +40,15 @@ ${JSON.stringify(messages, null, 2)}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite-preview",
       contents: prompt,
     });
     return response.text || "Waah maaf, Coach lagi nge-blank nih, coba ulangi lagi ya!";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini AI failed to chat", error);
+    if (error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
+      return "Maaf ya, kuota AI lagi limit karena kepenuhan (Error 429). Coba tunggu beberapa saat lagi baru tanya Coach dong!";
+    }
     return "Maaf ya, Coach lagi ada gangguan sinyal nih, coba tanya lagi dong!";
   }
 }
@@ -62,7 +65,7 @@ Bahasa yang digunakan: Gaul tapi profesional, to the point.
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -71,8 +74,15 @@ Bahasa yang digunakan: Gaul tapi profesional, to the point.
     });
 
     return JSON.parse(response.text!) as CoachPrescription;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini AI failed to process prescription", error);
+    if (error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
+      return {
+        diagnosis: "Sistem lagi kepenuhan request (Error 429: Rate Limit Exceeded). Tahan bentar ya!",
+        recommendedSport: "Olahraga Fleksibel",
+        reasoning: "Sementara ini kita rehat sejenak sambil menunggu sistem AI pulih. Nanti coba lagi ya!"
+      };
+    }
     return {
       diagnosis: "Kamu sepertinya kurang gerak hari ini dan butuh kardio seru buat meregangkan otot.",
       recommendedSport: "Badminton",
@@ -134,6 +144,8 @@ Pengguna ingin mencari lapangan/komunitas untuk berolahraga dengan kriteria beri
 - Pencarian pengguna: "${searchState.vibeText}"
 ${searchState.recommendedSport ? `- Olahraga spesifik: "${searchState.recommendedSport}"` : ''}
 ${searchState.latitude && searchState.longitude ? `- Koordinat GPS saat ini: Latitude ${searchState.latitude}, Longitude ${searchState.longitude}` : ''}
+${searchState.userCity ? `- Lokasi pengguna (Daerah/Kota): ${searchState.userCity}` : ''}
+${searchState.userAddress ? `- Alamat pengguna: ${searchState.userAddress}` : ''}
 
 Tolong pahami tempat (radarArea) dan olahraga (sportType) yang diinginkan pengguna.
 Buat data JSON terkait preferensi. JANGAN mencari lapangan, cukup identifikasi olahraga dan area saja.
@@ -141,7 +153,7 @@ Buat data JSON terkait preferensi. JANGAN mencari lapangan, cukup identifikasi o
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -152,13 +164,51 @@ Buat data JSON terkait preferensi. JANGAN mencari lapangan, cukup identifikasi o
     const parsed = JSON.parse(response.text!) as RadarRecommendation;
     parsed.results = []; // Initialize empty array, they will be populated by places API
     return parsed;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini AI failed to process the request", error);
-    // Fallback data if API fails or no API key
+    
+    // Fallback data if API fails or rate limits out
+    let fbSportType = "Olahraga";
+    if (searchState.recommendedSport) {
+        fbSportType = searchState.recommendedSport;
+    } else if (searchState.vibeText) {
+        fbSportType = "Olahraga"; // Avoid passing the entire long text to badge
+    }
+
+    let fbRadarArea = searchState.userCity || searchState.userAddress || "Area Terdekat";
+
     return {
-      radarArea: "Area Makassar",
-      sportType: "Futsal",
+      radarArea: fbRadarArea,
+      sportType: fbSportType,
       results: []
     };
+  }
+}
+
+export async function scanStrukDenganGemini(imageBase64: string, mimeType: string): Promise<string> {
+  const prompt = "Ekstrak total tagihan akhir dari gambar struk ini, kembalikan hanya angka nominalnya saja tanpa titik atau koma";
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-flash-lite-preview",
+      contents: [
+        {
+          inlineData: {
+            data: imageBase64,
+            mimeType: mimeType
+          }
+        },
+        prompt
+      ],
+    });
+    
+    // Fallback to extraction via regex if response is present but may have junk
+    return response.text ? response.text.replace(/[^0-9]/g, '').trim() : "";
+  } catch (error: any) {
+    console.error("Gemini failed to scan receipt", error);
+    if (error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
+      throw new Error("ERROR_429");
+    }
+    return "";
   }
 }

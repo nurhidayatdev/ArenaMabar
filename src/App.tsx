@@ -11,7 +11,10 @@ import LandingPage from "./pages/LandingPage";
 import CoachAI from "./pages/CoachAI";
 import CariLapangan from "./pages/CariLapangan";
 import RadarResults from "./pages/RadarResults";
+import KalkulatorMabar from "./pages/KalkulatorMabar";
+import FAQ from "./pages/FAQ";
 import { SearchProvider } from "./context/SearchContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const API_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || "";
 const hasValidKey = Boolean(API_KEY) && API_KEY !== 'YOUR_API_KEY';
@@ -40,19 +43,23 @@ export default function App() {
 
   return (
     <APIProvider apiKey={API_KEY} version="weekly">
-      <Router>
-        <SearchProvider>
-          <div className="min-h-screen flex flex-col font-sans">
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/lapangan" element={<CariLapangan />} />
-              <Route path="/coach" element={<CoachAI />} />
-              <Route path="/radar" element={<RadarResults />} />
-            </Routes>
-          </div>
-        </SearchProvider>
-      </Router>
+      <ThemeProvider>
+        <Router>
+          <SearchProvider>
+            <div className="min-h-screen flex flex-col font-sans dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/lapangan" element={<CariLapangan />} />
+                <Route path="/coach" element={<CoachAI />} />
+                <Route path="/radar" element={<RadarResults />} />
+                <Route path="/kalkulator" element={<KalkulatorMabar />} />
+                <Route path="/faq" element={<FAQ />} />
+              </Routes>
+            </div>
+          </SearchProvider>
+        </Router>
+      </ThemeProvider>
     </APIProvider>
   );
 }
