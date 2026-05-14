@@ -15,6 +15,7 @@ import KalkulatorMabar from "./pages/KalkulatorMabar";
 import FAQ from "./pages/FAQ";
 import { SearchProvider } from "./context/SearchContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import AIShopper from "./pages/AIShopper";
 
 const API_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || "";
 const hasValidKey = Boolean(API_KEY) && API_KEY !== 'YOUR_API_KEY';
@@ -46,11 +47,12 @@ export default function App() {
       <ThemeProvider>
         <Router>
           <SearchProvider>
-            <div className="min-h-screen flex flex-col font-sans dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
+            <div className="min-h-screen flex flex-col font-sans dark:bg-zinc-950 dark:text-slate-100 transition-colors duration-200">
               <Navbar />
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/lapangan" element={<CariLapangan />} />
+                <Route path="/shopper" element={<AIShopper />} />
                 <Route path="/coach" element={<CoachAI />} />
                 <Route path="/radar" element={<RadarResults />} />
                 <Route path="/kalkulator" element={<KalkulatorMabar />} />

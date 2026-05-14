@@ -8,9 +8,9 @@
   --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --color-primary-container: #F8F9FA;
-  --color-on-primary-container: #0f172a;
+  --color-on-primary-container: #09090b;
   --color-surface: #ffffff;
-  --color-on-surface: #0f172a;
+  --color-on-surface: #09090b;
   --color-surface-variant: #f8fafc;
   --color-on-surface-variant: #64748b;
   --color-secondary-container: #6366f1;
@@ -18,10 +18,10 @@
   --color-secondary: #4f46e5;
   --color-on-secondary: #ffffff;
   --color-tertiary: #fcd34d;
-  --color-on-tertiary: #0f172a;
+  --color-on-tertiary: #09090b;
   --color-neo-yellow: #fcd34d;
   --color-neo-red: #fb7185;
-  --color-neo-black: #0f172a;
+  --color-neo-black: #09090b;
   --color-neo-white: #ffffff;
   --color-error-container: #ffe4e6;
   --color-on-error-container: #e11d48;
@@ -36,7 +36,7 @@ body {
 }
 
 .dark body {
-  background-color: #0f172a;
+  background-color: #09090b;
   color: #f8fafc;
 }
 

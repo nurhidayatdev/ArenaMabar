@@ -19,29 +19,56 @@ export interface CoachPrescription {
   reasoning: string;
 }
 
+export interface ChatPart {
+  text?: string;
+  inlineData?: {
+    data: string;
+    mimeType: string;
+  };
+}
+
 export interface ChatMessage {
   role: "user" | "model" | "system";
-  parts: { text: string }[];
+  parts: ChatPart[];
 }
 
 export async function chatWithCoach(messages: ChatMessage[]): Promise<string> {
   const prompt = `Berperanlah sebagai "Coach AI" (konsultan kesehatan/olahraga gaul dan friendly) di aplikasi bernama "ArenaMabar".
 Berikan saran, diagnosa ringan, atau rekomendasi olahraga/pola makan yang sesuai dengan percakapan dengan pengguna.
 Bahasa yang digunakan: Gaul, asik, to the point, dan sangat membantu. Gunakan emoji untuk lebih asik. JANGAN terlalu panjang lebar kecuali diminta. Jawab langsung keluhan pengguna.
+JIKA pengguna mengirimkan foto makanan/minuman, bantulah "Analisis Nutrisi Pasca-Olahraga". Jelaskan apakah makanan/minuman tersebut mendukung pemulihan tubuh berdasarkan olahraga yang baru saja dilakukan atau kondisinya saat ini.
+JIKA pengguna menyebutkan "keluhan fisik" (seperti pegal, sakit, dll), berikan saran "Program Latihan Personalisasi" berupa gerakan pemanasan atau pendinginan spesifik untuk mencegah cedera atau memulihkan kondisinya.
 
 PENTING:
 - Aplikasi ArenaMabar ini sudah memiliki fitur pencarian lapangan ("Cari Lapangan") dan komunitas ("Cari Komunitas") yang terintegrasi dengan peta.
 - JIKA pengguna meminta dicarikan lapangan, GOR, atau tempat olahraga terdekat, JANGAN menyuruh mereka mencari sendiri. Kamu WAJIB menyertakan perintah [SEARCH_LAPANGAN: (nama olahraga)] di akhir pesanmu.
 Contoh:
-"Gas bre, gw cariin GOR Badminton terdekat dari lkasi lo sekarang! 🏸 [SEARCH_LAPANGAN: badminton]"
-
-Ini adalah riwayat percakapan:
-${JSON.stringify(messages, null, 2)}`;
+"Gas bre, gw cariin GOR Badminton terdekat dari lkasi lo sekarang! 🏸 [SEARCH_LAPANGAN: badminton]"`;
 
   try {
+    // Construct the payload for history. We omit the text prompt from history.
+    // Actually we can pass history explicitly to GoogleGenAI
+    const chatSession = ai.chats.create({
+      model: "gemini-3.1-flash-lite-preview",
+      config: {
+        systemInstruction: prompt,
+      }
+    });
+
+    // Or since we already have the `messages` array, we can just pass them as contents.
+    // Convert ChatMessage to what generateContent expects:
+    const contents = messages.map(msg => ({
+      role: msg.role === 'model' ? 'model' : 'user', // gemini system isn't allowed in standard contents unless it's systemInstruction
+      parts: msg.parts
+    }));
+
+    // Insert prompt at the beginning or use systemInstruction
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-lite-preview",
-      contents: prompt,
+      contents: [
+        { role: "user", parts: [{ text: prompt }] },
+        ...contents
+      ],
     });
     return response.text || "Waah maaf, Coach lagi nge-blank nih, coba ulangi lagi ya!";
   } catch (error: any) {
@@ -105,6 +132,10 @@ const responseSchema = {
     maxDistanceKm: {
       type: Type.NUMBER,
       description: "Maksimal jarak dalam kilometer yang diminta user, jika ada di teks.",
+    },
+    warmUpProtocol: {
+      type: Type.STRING,
+      description: "Saran gerakan pemanasan atau pendinginan spesifik untuk mencegah cedera JIKA teks mengandung keluhan fisik (seperti pegal, sakit, stres). Jika tidak ada keluhan fisik, kosongkan."
     }
   },
   required: ["radarArea", "sportType"]
@@ -135,6 +166,7 @@ export interface RadarRecommendation {
   radarArea: string;
   sportType: string;
   maxDistanceKm?: number;
+  warmUpProtocol?: string;
   results: RecommendationResult[];
 }
 
@@ -180,8 +212,55 @@ Buat data JSON terkait preferensi. JANGAN mencari lapangan, cukup identifikasi o
     return {
       radarArea: fbRadarArea,
       sportType: fbSportType,
+      warmUpProtocol: "Tarik napas panjang, lakukan peregangan dinamis, dan bersiaplah main!",
       results: []
     };
+  }
+}
+
+export interface ShopperRecommendation {
+  name: string;
+  priceRange: string;
+  link: string;
+  reason: string;
+}
+
+const shopperSchema = {
+  type: Type.ARRAY,
+  items: {
+    type: Type.OBJECT,
+    properties: {
+      name: { type: Type.STRING, description: "Nama produk olahraga" },
+      priceRange: { type: Type.STRING, description: "Rentang harga asli yang akurat di pasaran (misal: Rp 150.000 - Rp 230.000)" },
+      link: { type: Type.STRING, description: "Link pencarian produk di e-commerce seperti Shopee. Wajib sertakan https." },
+      reason: { type: Type.STRING, description: "Alasan teknis kenapa produk ini direkomendasikan" }
+    },
+    required: ["name", "priceRange", "link", "reason"]
+  }
+};
+
+export async function fetchShopperRecommendations(sport: string, category: string, specificNeeds: string, minBudget: number, maxBudget: number, level: number): Promise<ShopperRecommendation[]> {
+  const levelNames = ["Pemula", "Amatir", "Menengah", "Lanjutan", "Profesional"];
+  const levelStr = levelNames[level - 1] || "Menengah";
+  const needsText = specificNeeds.trim() ? ` Kebutuhan spesifik/gaya main: "${specificNeeds}".` : "";
+  const prompt = `Berdasarkan cabang olahraga ${sport}, kategori ${category},${needsText} rentang budget Rp${minBudget.toLocaleString("id-ID")} - Rp${maxBudget.toLocaleString("id-ID")}, dan level permainan ${levelStr}, berikan 4 rekomendasi produk olahraga 100% ORIGINAL terbaik yang relevan beserta alasan teknisnya (mengapa barang ini cocok dengan preferensinya). Pastikan memberikan estimasi rentang harga barang ORIGINAL yang akurat sesuai dengan harga di Shopee Mall / Official Store. Field link harus berisi link search shopee pencarian produknya dengan tambahan kata "Original", e.g. https://shopee.co.id/search?keyword=nama+produk+original`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-flash-lite-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: shopperSchema,
+        temperature: 0.7
+      },
+    });
+
+    const parsed = JSON.parse(response.text!) as ShopperRecommendation[];
+    return parsed;
+  } catch (error: any) {
+    console.error("Gemini AI failed to process shopper request", error);
+    return [];
   }
 }
 

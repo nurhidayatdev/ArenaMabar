@@ -2,6 +2,7 @@ import { BrainCircuit, MessageCircle, SlidersHorizontal, Star, BadgeCheck, Navig
 import React, { useEffect, useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useSearchContext } from "../context/SearchContext";
+import { useTheme } from "../context/ThemeContext";
 import { fetchRecommendations, RadarRecommendation } from "../services/geminiService";
 import { Map, AdvancedMarker, Pin, useMapsLibrary, useMap } from "@vis.gl/react-google-maps";
 import { useTranslation } from "react-i18next";
@@ -31,6 +32,8 @@ export default function RadarResults() {
   const [showTutorialModal, setShowTutorialModal] = useState(() => {
     return sessionStorage.getItem("radarTutorialShown") !== "true";
   });
+  
+  const { theme } = useTheme();
   
   const placesLib = useMapsLibrary("places");
   const map = useMap("DEMO_MAP_ID");
@@ -287,7 +290,7 @@ export default function RadarResults() {
       <div className="flex flex-col lg:flex-row flex-1 min-h-0 gap-6">
             {/* Left Pane: Map Area */}
             <section className="w-full lg:flex-1 lg:w-1/2 flex flex-col gap-4 min-h-[350px] lg:min-h-0">
-              <div className="bg-white dark:bg-slate-800 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 p-3 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex justify-between items-center z-20 transition-colors">
+              <div className="bg-white dark:bg-zinc-900 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 p-3 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex justify-between items-center z-20 transition-colors">
                 <div className="flex items-center gap-3">
                    <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                      <Navigation className="w-4 h-4 stroke-[2]" />
@@ -301,12 +304,12 @@ export default function RadarResults() {
                   <div className="relative">
                     <button 
                       onClick={() => setShowFilter(!showFilter)}
-                      className="bg-white dark:bg-slate-700 rounded-full px-3 py-1 border-2 border-slate-900 dark:border-slate-600 font-semibold text-xs flex items-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-600text-slate-900 dark:text-slate-100 transition-colors"
+                      className="bg-white dark:bg-zinc-800 rounded-full px-3 py-1 border-2 border-slate-900 dark:border-slate-600 font-semibold text-xs flex items-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-600text-slate-900 dark:text-slate-100 transition-colors"
                     >
                       <SlidersHorizontal className="w-3 h-3 stroke-[2]" /> {t("radar.btn_sort")}
                     </button>
                     {showFilter && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-100 rounded-xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 overflow-hidden">
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 overflow-hidden">
                         <button 
                           onClick={() => { setSortBy("distance"); setShowFilter(false); setSelectedIndex(null); }}
                           className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 border-b-2 border-slate-100 dark:border-slate-100 ${sortBy === "distance" ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400" : "text-slate-700 dark:text-slate-300"}`}
@@ -335,7 +338,7 @@ export default function RadarResults() {
                    className={`flex-1 py-2 px-4 rounded-xl border-2 border-slate-900 dark:border-slate-100 font-bold text-xs transition-all flex items-center justify-center gap-2 ${
                      isOpenOnly 
                       ? "bg-emerald-400 dark:bg-emerald-600 dark:text-slate-100 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] translate-y-[-2px] dark:border-emerald-600" 
-                      : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      : "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                    }`}
                 >
                   <Clock className={`w-3 h-3 ${isOpenOnly ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`} />
@@ -343,13 +346,14 @@ export default function RadarResults() {
                 </button>
               </div>
 
-              <div className="flex-1 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] bg-slate-100 dark:bg-slate-800 relative overflow-hidden group min-h-[300px] mb-2 mr-2">
+              <div className="flex-1 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] bg-slate-100 dark:bg-zinc-900 relative overflow-hidden group min-h-[300px] mb-2 mr-2">
                 {sortedResults && sortedResults.length > 0 ? (
                   <div className="absolute inset-0 w-full h-full">
                     <Map
                       defaultCenter={{ lat: manualLat || sortedResults[0]?.lat || -6.2, lng: manualLng || sortedResults[0]?.lng || 106.8 }}
                       defaultZoom={13}
                       mapId="DEMO_MAP_ID"
+                      colorScheme={theme === 'dark' ? 'DARK' : 'LIGHT'}
                       internalUsageAttributionIds={['gmp_mcp_codeassist_v1_aistudio']}
                       style={{ width: '100%', height: '100%' }}
                       disableDefaultUI={false}
@@ -385,7 +389,7 @@ export default function RadarResults() {
                           onClick={() => setSelectedIndex(idx)}
                         >
                            <div className={`transition-all ${selectedIndex === idx ? 'scale-125' : 'scale-100'}`}>
-                             <Pin background={selectedIndex === idx ? "#4f46e5" : "#f59e0b"} glyphColor="#fff" borderColor="#0f172a" />
+                             <Pin background={selectedIndex === idx ? "#4f46e5" : "#f59e0b"} glyphColor="#fff" borderColor="#09090b" />
                            </div>
                         </AdvancedMarker>
                       ))}
@@ -445,12 +449,24 @@ export default function RadarResults() {
                           </button>
                         ))}
                       </div>
+
+                      {data?.warmUpProtocol && (
+                        <div className="mt-4 bg-teal-300 dark:bg-teal-500 p-3 rounded-xl border-2 border-slate-900 dark:border-slate-100 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
+                          <h4 className="flex items-center gap-2 font-black text-xs uppercase text-slate-900 dark:text-slate-900 mb-1">
+                            <BrainCircuit className="w-4 h-4 text-slate-900" />
+                            Program AI Coach
+                          </h4>
+                          <p className="text-xs text-slate-900 dark:text-slate-900 font-bold">
+                            {data.warmUpProtocol}
+                          </p>
+                        </div>
+                      )}
                   </div>
                   {sortedResults.map((result, idx) => (
                     <div 
                       key={idx}
                       onClick={() => setSelectedIndex(idx)}
-                      className="bg-white dark:bg-slate-800 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 p-4 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] transition-all cursor-pointer flex flex-col gap-3"
+                      className="bg-white dark:bg-zinc-900 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 p-4 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] transition-all cursor-pointer flex flex-col gap-3"
                     >
                       <div className="flex justify-between items-start">
                         <div>
@@ -469,8 +485,8 @@ export default function RadarResults() {
                         </div>
                       </div>
                       <div className="flex gap-2 flex-wrap">
-                        <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-md text-[10px] font-semibold">{result.status}</span>
-                        <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-md text-[10px] font-semibold">Akurasi {result.accuracy}%</span>
+                        <span className="bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-md text-[10px] font-semibold">{result.status}</span>
+                        <span className="bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-md text-[10px] font-semibold">Akurasi {result.accuracy}%</span>
                       </div>
                     </div>
                   ))}
@@ -487,7 +503,7 @@ export default function RadarResults() {
                   {/* Main Result Card */}
                   <article className="bg-indigo-600 dark:bg-indigo-800 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col text-white flex-shrink-0 overflow-hidden">
               {sortedResults[selectedIndex]?.photoUri && (
-                <div className="w-full h-48 bg-slate-200 dark:bg-slate-700 border-b-2 border-slate-900 dark:border-slate-100 relative">
+                <div className="w-full h-48 bg-slate-200 dark:bg-zinc-800 border-b-2 border-slate-900 dark:border-slate-100 relative">
                   <img src={sortedResults[selectedIndex]?.photoUri} alt={sortedResults[selectedIndex]?.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </div>
               )}
@@ -503,7 +519,7 @@ export default function RadarResults() {
               
               <div className="p-4 pt-2 flex flex-col gap-4">
                 <div className="flex flex-wrap gap-2">
-                  <span className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-full px-3 py-1 font-bold text-xs border border-transparent dark:border-slate-600">
+                  <span className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 rounded-full px-3 py-1 font-bold text-xs border border-transparent dark:border-slate-600">
                     Rating: {sortedResults[selectedIndex]?.ratingText}
                   </span>
                   <span className="bg-amber-300 dark:bg-amber-500 text-slate-900 rounded-full px-3 py-1 font-bold text-xs border border-transparent dark:border-amber-600">
@@ -538,7 +554,7 @@ export default function RadarResults() {
             {/* Info Grid (Bento style sub-cards) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-shrink-0">
               {/* Address & Hours Card */}
-              <div className="md:col-span-2 bg-slate-50 dark:bg-slate-800 rounded-[24px] p-4 border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col gap-3 transition-colors">
+              <div className="md:col-span-2 bg-slate-50 dark:bg-zinc-900 rounded-[24px] p-4 border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col gap-3 transition-colors">
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl text-emerald-600 dark:text-emerald-400">
                       <MapPin className="w-4 h-4" />
@@ -584,7 +600,7 @@ export default function RadarResults() {
               </div>
 
               {/* Facilities Card */}
-              <div className="bg-white dark:bg-slate-800 rounded-[24px] p-4 border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col justify-between transition-colors">
+              <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-4 border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col justify-between transition-colors">
                   <div className="flex justify-between items-start mb-2">
                     <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                       <Star className="w-4 h-4 fill-emerald-600 dark:fill-emerald-400" />
@@ -594,7 +610,7 @@ export default function RadarResults() {
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{t("radar.detail.facilities")}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {sortedResults[selectedIndex]?.facilities?.map((fac: any, i: number) => (
-                        <span key={i} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">{fac}</span>
+                        <span key={i} className="bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">{fac}</span>
                       ))}
                     </div>
                   </div>
@@ -628,10 +644,10 @@ export default function RadarResults() {
 
       {/* WA Contact Modal */}
       {showContactModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-zinc-950/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
             <h3 className="font-black text-xl mb-1 uppercase tracking-tighter text-amber-500">Peringatan!</h3>
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 bg-slate-100 dark:bg-slate-700 p-2 rounded-lg border border-slate-200 dark:border-slate-600">{selectedIndex !== null ? sortedResults[selectedIndex]?.name : ""}</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 bg-slate-100 dark:bg-zinc-800 p-2 rounded-lg border border-slate-200 dark:border-slate-600">{selectedIndex !== null ? sortedResults[selectedIndex]?.name : ""}</p>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-pre-line mb-6">
               {t("radar.alert.wa_warning")}
             </p>
@@ -658,8 +674,8 @@ export default function RadarResults() {
 
       {/* No Number Modal */}
       {showNoNumberModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-zinc-950/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
             <h3 className="font-black text-xl mb-3 text-slate-900 dark:text-slate-100 uppercase">Maaf</h3>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-pre-line mb-6">
               {t("radar.alert.wa_no_number")}
@@ -676,8 +692,8 @@ export default function RadarResults() {
 
       {/* Tutorial Modal */}
       {showTutorialModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-zinc-950/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
             <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4">
                <MapPin className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -700,8 +716,8 @@ export default function RadarResults() {
 
       {/* Reposition Confirmation Popup */}
       {showRepositionPopup && manualLat && manualLng && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-zinc-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
             <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4">
                <RefreshCw className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -716,7 +732,7 @@ export default function RadarResults() {
                 onClick={() => {
                   setShowRepositionPopup(false);
                 }}
-                className="flex-1 px-4 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-100 font-bold rounded-xl border-2 border-slate-900 dark:border-slate-100 transition-colors shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
+                className="flex-1 px-4 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-zinc-800 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-100 font-bold rounded-xl border-2 border-slate-900 dark:border-slate-100 transition-colors shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
               >
                 Batal
               </button>

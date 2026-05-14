@@ -45,7 +45,7 @@ export default function FAQ() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 py-8 relative min-h-[calc(100vh-5rem)] bg-[#F8F9FA] dark:bg-slate-900 transition-colors duration-200">
+    <div className="flex-1 flex flex-col items-center justify-center p-4 py-8 relative min-h-[calc(100vh-5rem)] bg-[#F8F9FA] dark:bg-zinc-950 transition-colors duration-200">
       <FloatingDecorations />
       <div className="w-full max-w-4xl text-center mb-8 z-10 animate-fade-in">
         <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight mb-3">
@@ -60,14 +60,14 @@ export default function FAQ() {
         {faqs.map((faq, idx) => (
           <div 
             key={idx} 
-            className={`w-full bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-900 dark:border-slate-100 overflow-hidden transition-all ${openIdx === idx ? "shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] -translate-y-1" : "shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"}`}
+            className={`w-full bg-white dark:bg-zinc-900 rounded-3xl border-2 border-slate-900 dark:border-slate-100 overflow-hidden transition-all ${openIdx === idx ? "shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] -translate-y-1" : "shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"}`}
           >
             <button
               onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
               className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
             >
               <h3 className="text-base font-bold pr-4 text-slate-900 dark:text-slate-100">{faq.q}</h3>
-              <div className={`w-8 h-8 shrink-0 rounded-full border-2 border-slate-900 dark:border-slate-100 flex items-center justify-center transition-transform duration-300 ${openIdx === idx ? "rotate-180 bg-amber-300 dark:bg-amber-500 text-slate-900" : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100"}`}>
+              <div className={`w-8 h-8 shrink-0 rounded-full border-2 border-slate-900 dark:border-slate-100 flex items-center justify-center transition-transform duration-300 ${openIdx === idx ? "rotate-180 bg-amber-300 dark:bg-amber-500 text-slate-900" : "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-slate-100"}`}>
                 <ChevronDown className="w-5 h-5" />
               </div>
             </button>

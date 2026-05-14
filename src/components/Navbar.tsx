@@ -130,6 +130,7 @@ export default function Navbar() {
   const links = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.find_court"), path: "/lapangan" },
+    { name: t("nav.shopper"), path: "/shopper" },
     { name: t("nav.calculator"), path: "/kalkulator" },
     { name: t("nav.coach"), path: "/coach" },
     { name: t("nav.faq"), path: "/faq" },
@@ -137,7 +138,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 w-full flex justify-between items-center px-4 md:px-6 py-4 md:py-6 z-50 bg-[#F8F9FA]/90 dark:bg-slate-900/90 backdrop-blur-sm transition-colors duration-200">
+      <header className="sticky top-0 w-full flex justify-between items-center px-4 md:px-6 py-4 md:py-6 z-50 bg-[#F8F9FA]/90 dark:bg-zinc-950/90 backdrop-blur-sm transition-colors duration-200">
         <div className="flex items-center gap-3">
           <Link to="/" className="w-10 h-10 bg-slate-900 dark:bg-slate-100 rounded-xl flex items-center justify-center shrink-0 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
             <div className="w-5 h-5 border-2 border-white dark:border-slate-900 rounded-sm rotate-45" />
@@ -147,7 +148,7 @@ export default function Navbar() {
           </Link>
         </div>
         
-        <nav className="hidden lg:flex bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-100 rounded-full px-5 py-2 gap-6 text-xs font-semibold shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] absolute left-1/2 -translate-x-1/2">
+        <nav className="hidden lg:flex bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-full px-5 py-2 gap-6 text-xs font-semibold shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] absolute left-1/2 -translate-x-1/2">
           {links.map((link) => (
             <Link
               key={link.path}
@@ -167,7 +168,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <button
             onClick={toggleTheme}
-            className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-100 rounded-full text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 bg-slate-100 dark:bg-zinc-900 border-2 border-slate-200 dark:border-slate-100 rounded-full text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
           >
             {theme === 'light' ? <Moon className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Sun className="w-3.5 h-3.5 md:w-4 md:h-4" />}
@@ -176,13 +177,13 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-100 rounded-full text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-zinc-900 border-2 border-slate-200 dark:border-slate-100 rounded-full text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
               <Globe className="w-3.5 h-3.5" />
               <span className="uppercase">{i18n.language.substring(0, 2)}</span>
             </button>
             {isLangMenuOpen && (
-              <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-100 rounded-xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 overflow-hidden flex flex-col w-20">
+              <div className="absolute top-full right-0 mt-2 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 overflow-hidden flex flex-col w-20">
                 {languages.map((l) => (
                   <button 
                     key={l.code}
@@ -207,7 +208,7 @@ export default function Navbar() {
             </p>
           </div>
           <button 
-            className="lg:hidden w-10 h-10 bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-100 rounded-lg flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] z-50 relative"
+            className="lg:hidden w-10 h-10 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-lg flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] z-50 relative"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X className="w-5 h-5 text-slate-900 dark:text-slate-100" /> : <Menu className="w-5 h-5 text-slate-900 dark:text-slate-100" />}
@@ -217,7 +218,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-[#F8F9FA] dark:bg-slate-900 pt-24 px-6 flex flex-col gap-6 transition-colors duration-200">
+        <div className="lg:hidden fixed inset-0 z-40 bg-[#F8F9FA] dark:bg-zinc-950 pt-24 px-6 flex flex-col gap-6 transition-colors duration-200">
           {links.map((link) => (
             <Link
               key={link.path}

@@ -136,7 +136,7 @@ ${t('calc.wa.template.transfer')} `;
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 py-8 relative min-h-[calc(100vh-5rem)] bg-[#F8F9FA] dark:bg-slate-900 transition-colors duration-200">
+    <div className="flex-1 flex flex-col items-center justify-center p-4 py-8 relative min-h-[calc(100vh-5rem)] bg-[#F8F9FA] dark:bg-zinc-950 transition-colors duration-200">
       <FloatingDecorations />
       <div className="w-full max-w-4xl text-center mb-8 z-10 animate-fade-in">
         <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight mb-3">
@@ -149,7 +149,7 @@ ${t('calc.wa.template.transfer')} `;
 
       <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-6 md:gap-8 items-stretch z-10 animate-fade-in">
         {/* Form Kalkulator */}
-        <div className="w-full lg:w-1/2 flex flex-col bg-white dark:bg-slate-800 rounded-[24px] p-5 sm:p-6 md:p-8 border-[3px] border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] transition-colors">
+        <div className="w-full lg:w-1/2 flex flex-col bg-white dark:bg-zinc-900 rounded-[24px] p-5 sm:p-6 md:p-8 border-[3px] border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] transition-colors">
           <form onSubmit={handleCalculate} className="space-y-6 flex flex-col h-full">
             <div className="flex-1 space-y-6">
               <div className="space-y-2 relative">
@@ -163,7 +163,7 @@ ${t('calc.wa.template.transfer')} `;
                       onChange={(e) => setTotalSewa(e.target.value.replace(/\D/g, ""))}
                       required
                       placeholder={t("calc.placeholder.court_fee")}
-                      className="w-full h-full pl-12 pr-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-slate-800 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
+                      className="w-full h-full pl-12 pr-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
                     />
                   </div>
                   
@@ -212,7 +212,7 @@ ${t('calc.wa.template.transfer')} `;
                     value={formatRibuan(biayaTambahan)}
                     onChange={(e) => setBiayaTambahan(e.target.value.replace(/\D/g, ""))}
                     placeholder={t("calc.placeholder.extra_fee")}
-                    className="w-full h-full pl-12 pr-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-slate-800 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
+                    className="w-full h-full pl-12 pr-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
                   />
                 </div>
                 <p className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold mt-2">{t("calc.extra_hint")}</p>
@@ -227,7 +227,7 @@ ${t('calc.wa.template.transfer')} `;
                     onChange={(e) => setJumlahPemain(e.target.value.replace(/\D/g, ""))}
                     required
                     placeholder={t("calc.placeholder.player_count")}
-                    className="w-full h-full px-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-slate-800 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
+                    className="w-full h-full px-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
                   />
                 </div>
               </div>
@@ -308,7 +308,7 @@ ${t('calc.wa.template.transfer')} `;
               </a>
             </div>
           ) : (
-            <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-5 sm:p-6 md:p-8 border-[3px] border-dashed border-slate-300 dark:border-slate-100 rounded-[24px] bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-5 sm:p-6 md:p-8 border-[3px] border-dashed border-slate-300 dark:border-slate-100 rounded-[24px] bg-slate-50/50 dark:bg-zinc-900/50">
               <Calculator className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4 stroke-[2]" />
               <p className="text-slate-500 dark:text-slate-400 font-bold max-w-sm text-sm">
                 {t("calc.empty.desc")}

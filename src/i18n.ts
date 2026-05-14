@@ -8,6 +8,7 @@ const resources = {
       // Navbar
       "nav.home": "Beranda",
       "nav.find_court": "Cari Lapangan",
+      "nav.shopper": "AI Shopper",
       "nav.coach": "Coach AI",
       "nav.calculator": "Kalkulator",
       "nav.faq": "FAQ",
@@ -88,7 +89,7 @@ const resources = {
       "search.pref.sport": "Olahraga",
       "search.pref.other_sport": "Atau tulis olahraga lain...",
       "search.pref.partner": "Bersama Siapa?",
-      "search.pref.budget": "Budget / Orang",
+      "search.pref.budget": "Maks. Harga / Jam",
       "search.pref.distance": "Jarak Maksimal",
       "search.text.label": "Deskripsikan Tempat Idealmu",
       "search.text.placeholder": "Contoh: Cari lapangan badminton terdekat yang murah, ada kantinnya, dan parkiran luas buat motor.",
@@ -139,7 +140,7 @@ const resources = {
       // CoachAI
       "coach.title": "Coach AI",
       "coach.subtitle": "Pelatih pribadi pintar untuk konsultasi postur, cedera ringan, atau strategi bermain.",
-      "coach.chat_placeholder": "Ketikan masalah otot, postur, atau pertanyaan olahraga di sini...",
+      "coach.chat_placeholder": "Ketik keluhan fisik, atau upload foto makanan pasca-olahragamu...",
       "coach.empty.desc": "Ceritakan keluhan atau tujuan olahragamu. Coach AI siap bantu berikan tips yang tepat.",
       "coach.greeting": "Halo bre! Gw Coach AI. Ada keluhan badan atau mau nanya tips olahraga sama diet hari ini?",
       "coach.error": "Waduh, sinyalnya lagi jelek nih. Coba tanya lagi dong!",
@@ -152,6 +153,7 @@ const resources = {
       // Navbar
       "nav.home": "Home",
       "nav.find_court": "Find Court",
+      "nav.shopper": "AI Shopper",
       "nav.coach": "Coach AI",
       "nav.calculator": "Calculator",
       "nav.faq": "FAQ",
@@ -232,7 +234,7 @@ const resources = {
       "search.pref.sport": "Sport",
       "search.pref.other_sport": "Or write other sport...",
       "search.pref.partner": "With Who?",
-      "search.pref.budget": "Budget / Person",
+      "search.pref.budget": "Max Price / Hour",
       "search.pref.distance": "Max Distance",
       "search.text.label": "Describe your ideal place",
       "search.text.placeholder": "Example: Find a nearby cheap badminton court with a canteen and large parking lot.",
@@ -294,6 +296,7 @@ const resources = {
     translation: {
       "nav.home": "Inicio",
       "nav.find_court": "Buscar Cancha",
+      "nav.shopper": "AI Shopper",
       "nav.coach": "Entrenador IA",
       "nav.calculator": "Calculadora",
       "nav.faq": "FAQ",
@@ -430,6 +433,7 @@ const resources = {
     translation: {
       "nav.home": "首页",
       "nav.find_court": "找球场",
+      "nav.shopper": "AI 会员",
       "nav.coach": "AI 教练",
       "nav.calculator": "计算器",
       "nav.faq": "FAQ",
