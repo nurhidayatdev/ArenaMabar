@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BrainCircuit, Send, User, Loader2, ArrowRight, ImagePlus, X } from "lucide-react";
+import { BrainCircuit, Send, User, Loader2, ArrowRight, ImagePlus, X, Mic } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useNavigate } from "react-router-dom";
@@ -20,8 +20,10 @@ export default function CoachAI() {
   const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(null);
   const [selectedImageMime, setSelectedImageMime] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,6 +32,64 @@ export default function CoachAI() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Setup Speech Recognition
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        
+        recognitionRef.current.onresult = (event: any) => {
+          let currentTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            currentTranscript += event.results[i][0].transcript;
+          }
+          if (currentTranscript) {
+             setInput(prev => {
+                // To avoid duplication, we might need a more sophisticated approach or just replace it if we only do one sentence
+                // But for simplicity of continuous, we can just append if it's new, but interim pushes many times
+                // A better approach is to use interim results separately or replace
+                return currentTranscript;
+             });
+          }
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+          console.error("Speech recognition error", event.error);
+          setIsRecording(false);
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsRecording(false);
+        };
+      }
+    }
+    
+    return () => {
+       if (recognitionRef.current) {
+          recognitionRef.current.stop();
+       }
+    };
+  }, []);
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      alert("Browser kamu tidak support fitur voice. Coba pakai Chrome!");
+      return;
+    }
+    
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      setInput(""); // clear input when starting new recording
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
+  };
 
   // If language changes, translate the first greeting message if it's still unmodified
   useEffect(() => {
@@ -154,6 +214,14 @@ export default function CoachAI() {
               processedText = processedText.replace(lapanganMatch[0], "").trim();
             }
 
+            // Check for SEARCH_SHOPPER
+            const shopperMatch = processedText.match(/\[SEARCH_SHOPPER:\s*(.*?)\]/);
+            if (shopperMatch) {
+              actionType = "SHOPPER";
+              actionQuery = shopperMatch[1].trim();
+              processedText = processedText.replace(shopperMatch[0], "").trim();
+            }
+
             return (
               <div key={idx} className={`flex gap-3 max-w-[85%] ${msg.role === "user" ? "self-end flex-row-reverse" : "self-start"}`}>
                 {/* Avatar */}
@@ -187,12 +255,20 @@ export default function CoachAI() {
                   {actionType && actionQuery && (
                     <button
                       onClick={() => {
-                        updateSearchState({ vibeText: actionQuery as string, recommendedSport: null });
-                        navigate("/radar?tab=venue");
+                        if (actionType === "SHOPPER") {
+                           navigate("/shopper");
+                        } else {
+                           updateSearchState({ vibeText: actionQuery as string, recommendedSport: null });
+                           navigate("/radar?tab=venue");
+                        }
                       }}
-                      className="mt-1 bg-amber-400 dark:bg-amber-500 hover:bg-amber-300 dark:hover:bg-amber-400 text-slate-900 px-4 py-3 rounded-2xl border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255, 255, 255,1)] hover:shadow-none hover:translate-y-1 hover:translate-x-1 transition-all text-sm font-bold flex items-center gap-2 self-start"
+                      className={`mt-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-0 transition-all text-sm font-bold flex items-center gap-2 self-start px-4 py-3 rounded-2xl border-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${
+                        actionType === "SHOPPER" 
+                          ? "bg-emerald-400 dark:bg-emerald-500 hover:bg-emerald-300 dark:hover:bg-emerald-400 text-slate-900 border-slate-900 dark:border-slate-100" 
+                          : "bg-amber-400 dark:bg-amber-500 hover:bg-amber-300 dark:hover:bg-amber-400 text-slate-900 border-slate-900 dark:border-slate-100"
+                      }`}
                     >
-                      {t("coach.btn_radar")}{actionQuery}
+                      {actionType === "SHOPPER" ? `Cari ${actionQuery} di AI Shopper` : `${t("coach.btn_radar")}${actionQuery}`}
                       <ArrowRight className="w-4 h-4 shrink-0" />
                     </button>
                   )}
@@ -240,6 +316,16 @@ export default function CoachAI() {
               className="w-12 h-[44px] sm:w-14 sm:h-[52px] bg-slate-100 dark:bg-zinc-800 flex-shrink-0 rounded-[16px] sm:rounded-[20px] border-2 border-slate-900 dark:border-slate-600 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors active:translate-y-1 active:shadow-none shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
             >
               <ImagePlus className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            <button
+              onClick={toggleRecording}
+              className={`w-12 h-[44px] sm:w-14 sm:h-[52px] flex-shrink-0 rounded-[16px] sm:rounded-[20px] border-2 border-slate-900 dark:border-slate-600 flex items-center justify-center transition-colors active:translate-y-1 active:shadow-none shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${
+                isRecording 
+                  ? "bg-red-500 hover:bg-red-600 text-white border-slate-900 dark:border-slate-100 animate-pulse" 
+                  : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-zinc-700"
+              }`}
+            >
+              <Mic className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
             <textarea
               className="flex-1 bg-[#F8F9FA] dark:bg-zinc-950 rounded-[16px] sm:rounded-[20px] border-2 border-slate-900 dark:border-slate-600 px-3 sm:px-4 py-2 sm:py-3 font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none resize-none max-h-[120px] min-h-[44px] sm:min-h-[52px] text-sm sm:text-base object-contain transition-colors"
