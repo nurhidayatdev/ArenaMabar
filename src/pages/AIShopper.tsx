@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Search, Mic, Keyboard, SlidersHorizontal, ShoppingCart, Loader2, ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 import FloatingDecorations from "../components/FloatingDecorations";
-import { fetchShopperRecommendations, ShopperRecommendation } from "../services/geminiService";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 const formatRupiah = (value: number) => {
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -13,10 +14,12 @@ const parseRupiah = (value: string) => {
 };
 
 export default function AIShopper() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   
-  const [sport, setSport] = useState("Badminton");
+  const [sport, setSport] = useState(t("shop.sport.badminton", "Badminton"));
   const [category, setCategory] = useState("Raket");
   const [customCategory, setCustomCategory] = useState("");
   const [specificNeeds, setSpecificNeeds] = useState("");
@@ -24,28 +27,41 @@ export default function AIShopper() {
   const [maxBudget, setMaxBudget] = useState(2000000);
   const [level, setLevel] = useState(3); // 1 to 5
   
-  const [isLoading, setIsLoading] = useState(false);
-  const [recommendations, setRecommendations] = useState<ShopperRecommendation[]>([]);
-
-  const sports = ["Soccer/Futsal", "Basketball", "Badminton", "Tennis", "Volleyball", "Table Tennis", "Golf", "Swimming", "Billiard", "Bowling", "Gym/Fitness", "Running", "Lainnya..."];
+  const OTHER_STRING = t("shop.others");
+  const sports = [
+    t("shop.sport.soccer", "Sepakbola/Futsal"), 
+    t("shop.sport.basketball", "Basket"), 
+    t("shop.sport.badminton", "Badminton"), 
+    t("shop.sport.tennis", "Tenis"), 
+    t("shop.sport.volleyball", "Voli"), 
+    t("shop.sport.table_tennis", "Tenis Meja"), 
+    t("shop.sport.golf", "Golf"), 
+    t("shop.sport.swimming", "Renang"), 
+    t("shop.sport.billiard", "Biliar"), 
+    t("shop.sport.bowling", "Bowling"), 
+    t("shop.sport.gym", "Gym/Fitness"), 
+    t("shop.sport.running", "Lari"), 
+    OTHER_STRING
+  ];
   const sportCategories: Record<string, string[]> = {
-    "Soccer/Futsal": ["Sepatu Bola/Futsal", "Jersey", "Bola", "Deker", "Sarung", "Tas"],
-    "Badminton": ["Raket", "Sepatu Badminton", "Jersey", "Kok", "Grip", "Tas"],
-    "Basketball": ["Sepatu Basket", "Jersey", "Bola Basket", "Protektor", "Tas"],
-    "Tennis": ["Raket", "Sepatu Tenis", "Bola Tenis", "Pakaian", "Tas"],
-    "Volleyball": ["Sepatu Voli", "Jersey", "Bola Voli", "Knee Pad", "Tas"],
-    "Table Tennis": ["Bet", "Bola Ping Pong", "Meja/Net", "Sepatu Ping Pong", "Tas"],
-    "Golf": ["Stik Golf", "Bola Golf", "Sepatu Golf", "Pakaian", "Sarung Tangan", "Tas"],
-    "Swimming": ["Pakaian Renang", "Kacamata Renang", "Topi Renang", "Papan Seluncur"],
-    "Billiard": ["Stik Biliar", "Bola Biliar", "Meja Biliar", "Kapur"],
-    "Bowling": ["Bola Bowling", "Sepatu Bowling", "Tas Bowling"],
-    "Gym/Fitness": ["Sepatu Training", "Pakaian Gym", "Dumbbell", "Matras", "Sarung Tangan"],
-    "Running": ["Sepatu Lari", "Pakaian Lari", "Smartwatch/Tracker", "Botol Minum", "Tas Pinggang"],
-    "Lainnya...": ["Sepatu", "Pakaian", "Alat Spesifik", "Aksesori", "Tas"]
+    [t("shop.sport.soccer", "Sepakbola/Futsal")]: ["Sepatu Bola/Futsal", "Jersey", "Bola", "Deker", "Sarung", "Tas"],
+    [t("shop.sport.badminton", "Badminton")]: ["Raket", "Sepatu Badminton", "Jersey", "Kok", "Grip", "Tas"],
+    [t("shop.sport.basketball", "Basket")]: ["Sepatu Basket", "Jersey", "Bola Basket", "Protektor", "Tas"],
+    [t("shop.sport.tennis", "Tenis")]: ["Raket", "Sepatu Tenis", "Bola Tenis", "Pakaian", "Tas"],
+    [t("shop.sport.volleyball", "Voli")]: ["Sepatu Voli", "Jersey", "Bola Voli", "Knee Pad", "Tas"],
+    [t("shop.sport.table_tennis", "Tenis Meja")]: ["Bet", "Bola Ping Pong", "Meja/Net", "Sepatu Ping Pong", "Tas"],
+    [t("shop.sport.golf", "Golf")]: ["Stik Golf", "Bola Golf", "Sepatu Golf", "Pakaian", "Sarung Tangan", "Tas"],
+    [t("shop.sport.swimming", "Renang")]: ["Pakaian Renang", "Kacamata Renang", "Topi Renang", "Papan Seluncur"],
+    [t("shop.sport.billiard", "Biliar")]: ["Stik Biliar", "Bola Biliar", "Meja Biliar", "Kapur"],
+    [t("shop.sport.bowling", "Bowling")]: ["Bola Bowling", "Sepatu Bowling", "Tas Bowling"],
+    [t("shop.sport.gym", "Gym/Fitness")]: ["Sepatu Training", "Pakaian Gym", "Dumbbell", "Matras", "Sarung Tangan"],
+    [t("shop.sport.running", "Lari")]: ["Sepatu Lari", "Pakaian Lari", "Smartwatch/Tracker", "Botol Minum", "Tas Pinggang"],
   };
-  const currentCategories = sportCategories[sport] || sportCategories["Lainnya..."];
+  sportCategories[OTHER_STRING] = ["Sepatu", "Pakaian", "Alat Spesifik", "Aksesori", "Tas"];
+  const currentCategories = sportCategories[sport] || sportCategories[OTHER_STRING];
   
-  const levels = ["Pemula", "Amatir", "Menengah", "Lanjutan", "Profesional"];
+  const levels = [t("shop.level.1"), t("shop.level.2"), t("shop.level.3"), t("shop.level.4"), t("shop.level.5")];
+
 
   // Update category when sport changes if it's not in the new list
   useEffect(() => {
@@ -55,11 +71,17 @@ export default function AIShopper() {
   }, [sport, currentCategories, category, customCategory]);
 
   const handleSearch = async () => {
-    setIsLoading(true);
     const selectedCat = customCategory.trim() || category;
-    const res = await fetchShopperRecommendations(sport, selectedCat, specificNeeds, minBudget, maxBudget, level);
-    setRecommendations(res);
-    setIsLoading(false);
+    navigate('/shopper-results', {
+      state: {
+        sport,
+        category: selectedCat,
+        specificNeeds,
+        minBudget,
+        maxBudget,
+        level
+      }
+    });
   };
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps));
@@ -70,18 +92,26 @@ export default function AIShopper() {
       <FloatingDecorations />
       
       <div className="w-full max-w-4xl text-center mb-8 z-10">
-        <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight mb-3 uppercase">
-          AI <span className="text-orange-500">Shopper</span>
-        </h1>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-3">
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight uppercase m-0">
+            {t("shop.title_start")} <span className="text-orange-500">{t("shop.title_end")}</span>
+          </h1>
+          <button
+            onClick={() => navigate('/shopper-results', { state: { showFavorites: true, sport: '', category: '', specificNeeds: '', minBudget: 0, maxBudget: 0, level: '' } })}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-100 font-bold text-xs uppercase tracking-wide transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+          >
+            <Heart className="w-4 h-4 text-rose-500" /> Favorit
+          </button>
+        </div>
         <p className="text-slate-600 dark:text-slate-400 font-bold text-base max-w-xl mx-auto px-4">
-          Cari perlengkapan {sport} terbaik sesuai kebutuhan dan budgetmu!
+          {t("shop.subtitle", { sport })}
         </p>
       </div>
 
-      <div className="w-full z-10 flex flex-col xl:flex-row gap-8 items-stretch justify-center transition-all duration-300 max-w-7xl px-4 md:px-8">
+      <div className="w-full max-w-3xl flex flex-col z-10 mx-auto">
         
-        {/* Form Container */}
-        <div className="w-full xl:w-[45%] xl:sticky xl:top-8 flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[24px] border-[3px] border-slate-900 dark:border-slate-100 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] p-4 sm:p-6 md:p-8 transition-colors flex flex-col">
+        {/* form is now full width and centered */}
+        <div className="w-full bg-white dark:bg-zinc-900 rounded-[24px] border-[3px] border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] sm:shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] sm:dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] p-5 sm:p-6 md:p-8 transition-colors flex flex-col">
         
         {/* Navigation / Progress Indicator */}
         <div className="flex items-center justify-between mb-8">
@@ -100,16 +130,16 @@ export default function AIShopper() {
             ))}
           </div>
           <span className="font-black text-sm text-slate-500 dark:text-slate-400">
-            LANGKAH {currentStep} / {totalSteps}
+            {t("shop.step_indicator", { current: currentStep, total: totalSteps })}
           </span>
         </div>
 
         <div className="flex-1 flex flex-col justify-start">
           {currentStep === 1 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">Pilih Olahraga</h2>
+              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{t("shop.step1.title")}</h2>
               <div className="flex flex-wrap gap-2">
-                {sports.filter(s => s !== "Lainnya...").map((s) => (
+                {sports.filter(s => s !== OTHER_STRING).map((s) => (
                   <button
                     key={s}
                     onClick={() => { setSport(s); }}
@@ -126,8 +156,8 @@ export default function AIShopper() {
               <div className="mt-4">
                 <input
                   type="text"
-                  placeholder="Atau tulis olahraga lain..."
-                  value={sports.filter(s => s !== "Lainnya...").includes(sport) ? "" : sport}
+                  placeholder={t("shop.step1.other")}
+                  value={sports.filter(s => s !== OTHER_STRING).includes(sport) ? "" : sport}
                   onChange={(e) => setSport(e.target.value)}
                   className="w-full h-[52px] px-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-emerald-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
                 />
@@ -137,9 +167,9 @@ export default function AIShopper() {
 
           {currentStep === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">Kategori & Kebutuhan</h2>
+              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{t("shop.step2.title")}</h2>
               <div className="mb-5">
-                <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-3 block tracking-wide">PILIH KATEGORI ALAT</label>
+                <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-3 block tracking-wide">{t("shop.step2.pretitle")}</label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {currentCategories.map((c) => (
                     <button
@@ -159,7 +189,7 @@ export default function AIShopper() {
                   type="text"
                   value={customCategory}
                   onChange={(e) => { setCustomCategory(e.target.value); setCategory(""); }}
-                  placeholder={`Atau tulis perlengkapan ${sport} lainnya...`}
+                  placeholder={t("shop.step2.other", { sport })}
                   className="w-full h-[52px] px-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
                 />
               </div>
@@ -168,7 +198,7 @@ export default function AIShopper() {
 
           {currentStep === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-               <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">Level Permainan</h2>
+               <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{t("shop.step3.title")}</h2>
                <div className="flex flex-wrap gap-2">
                  {levels.map((lvl, index) => (
                     <button
@@ -189,10 +219,10 @@ export default function AIShopper() {
 
           {currentStep === 4 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">Rentang Budget</h2>
+              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{t("shop.step4.title")}</h2>
               <div className="bg-slate-50 dark:bg-zinc-800 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 space-y-5">
                 <div>
-                  <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-2 block tracking-wide">PILIH PRESET BUDGET</label>
+                  <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-2 block tracking-wide">{t("shop.step4.pretitle")}</label>
                   <select 
                     onChange={(e) => {
                        if(e.target.value) {
@@ -203,7 +233,7 @@ export default function AIShopper() {
                     }}
                     className="w-full h-[52px] px-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] appearance-none cursor-pointer"
                   >
-                    <option value="">-- Ketik manual atau pilih preset --</option>
+                    <option value="">{t("shop.step4.preset_default")}</option>
                     <option value="100000-500000">Rp 100.000 - Rp 500.000</option>
                     <option value="500000-1000000">Rp 500.000 - Rp 1.000.000</option>
                     <option value="1000000-2000000">Rp 1.000.000 - Rp 2.000.000</option>
@@ -213,7 +243,7 @@ export default function AIShopper() {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <div className="w-full sm:flex-1">
-                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-2 block tracking-wide">BUDGET MINIMAL</label>
+                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-2 block tracking-wide">{t("shop.step4.min_label")}</label>
                     <div className="relative h-[52px]">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-500 dark:text-slate-400 text-sm">Rp</span>
                       <input
@@ -226,7 +256,7 @@ export default function AIShopper() {
                   </div>
                   <div className="hidden sm:block text-xl font-black text-slate-400 mt-6">-</div>
                   <div className="w-full sm:flex-1">
-                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-2 block tracking-wide">BUDGET MAKSIMAL</label>
+                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-2 block tracking-wide">{t("shop.step4.max_label")}</label>
                     <div className="relative h-[52px]">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-500 dark:text-slate-400 text-sm">Rp</span>
                       <input
@@ -254,7 +284,7 @@ export default function AIShopper() {
                 : "border-slate-900 dark:border-slate-100 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-zinc-800 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
             }`}
           >
-            Kembali
+            {t("shop.btn_back")}
           </button>
           
           {currentStep < totalSteps ? (
@@ -262,65 +292,17 @@ export default function AIShopper() {
               onClick={nextStep}
               className="w-2/3 h-[52px] bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white rounded-xl border-2 border-slate-900 dark:border-slate-100 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] transition-all active:shadow-none active:translate-y-0 focus:outline-none"
             >
-              Lanjut <ArrowRight className="w-4 h-4" />
+              {t("shop.btn_next")} <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
               onClick={handleSearch}
-              disabled={isLoading}
-              className="w-2/3 h-[52px] bg-orange-500 hover:bg-orange-600 text-slate-900 rounded-xl border-2 border-slate-900 dark:border-slate-100 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] transition-all active:shadow-none active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-2/3 h-[52px] bg-orange-500 hover:bg-orange-600 text-slate-900 rounded-xl border-2 border-slate-900 dark:border-slate-100 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] transition-all active:shadow-none active:translate-y-0"
             >
-              {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> MENCARI...</>
-              ) : (
-                <>CARI GEAR!</>
-              )}
+              <>{t("shop.btn_search")}</>
             </button>
           )}
         </div>
-        </div>
-
-        {/* Results Container */}
-        <div className="w-full xl:w-[55%] flex flex-col pt-2">
-          {recommendations.length > 0 ? (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-              {recommendations.map((item, idx) => (
-                <div key={idx} className="bg-white dark:bg-zinc-900 rounded-[20px] border-[3px] border-slate-900 dark:border-slate-100 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] p-5 flex flex-col transition-colors overflow-hidden">
-                   <h3 className="font-black text-lg text-slate-900 dark:text-slate-100 leading-tight mb-2">{item.name}</h3>
-                   <p className="font-black text-emerald-500 dark:text-emerald-400 mb-3 text-base">{item.priceRange}</p>
-                   <p className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-6 flex-1">
-                     {item.reason}
-                   </p>
-                   <a 
-                     href={item.link} 
-                     target="_blank" 
-                     rel="noopener noreferrer"
-                     className="mt-auto w-full py-3 bg-orange-500 hover:bg-orange-600 text-slate-900 rounded-xl border-[3px] border-slate-900 dark:border-slate-100 font-black text-xs uppercase text-center flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] active:translate-y-0 active:shadow-none transition-all dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
-                   >
-                     Cek di Shopee <ExternalLink className="w-4 h-4" />
-                   </a>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex-1 w-full flex flex-col items-center justify-center text-center p-8 bg-slate-50 dark:bg-zinc-800/80 rounded-[24px] border-4 border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-12 h-12 animate-spin text-orange-500 mb-4" />
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-2">Mencari Gear Terbaik...</h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-bold max-w-sm">Tunggu sebentar, AI sedang memilih produk tervalidasi yang paling pas buat kamu di Shopee!</p>
-                </>
-              ) : (
-                <>
-                  <div className="w-20 h-20 bg-slate-200 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-6">
-                    <ShoppingCart className="w-10 h-10 text-slate-400 dark:text-slate-500" />
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-2">Belum ada hasil</h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-bold max-w-sm">Pilih preferensi atau ketik apa yang kamu cari, dan kami akan memberikan rekomendasi gear impianmu di sini.</p>
-                </>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

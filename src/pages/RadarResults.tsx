@@ -1,18 +1,24 @@
-import { BrainCircuit, MessageCircle, SlidersHorizontal, Star, BadgeCheck, Navigation, Loader2, ArrowLeft, MapPin, Clock, Car, Bike, Footprints, RefreshCw, User } from "lucide-react";
+import { BrainCircuit, MessageCircle, SlidersHorizontal, Star, BadgeCheck, Navigation, Loader2, ArrowLeft, MapPin, Clock, Car, Bike, Footprints, RefreshCw, User, Heart } from "lucide-react";
 import React, { useEffect, useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSearchContext } from "../context/SearchContext";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import { fetchRecommendations, RadarRecommendation } from "../services/geminiService";
 import { Map, AdvancedMarker, Pin, useMapsLibrary, useMap } from "@vis.gl/react-google-maps";
 import { useTranslation } from "react-i18next";
+import { db } from "../lib/firebase";
+import { collection, doc, getDocs, setDoc, deleteDoc } from "firebase/firestore";
+import LoginPromptModal from "../components/LoginPromptModal";
 
 export default function RadarResults() {
   const { t } = useTranslation();
   const { searchState, updateSearchState } = useSearchContext();
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const initialTab = (queryParams.get("tab") as "venue" | "community") || "venue";
+  const initialShowFavorites = queryParams.get("showFavorites") === "true";
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null); // Using any temporarily for flexible data
@@ -34,9 +40,62 @@ export default function RadarResults() {
   });
   
   const { theme } = useTheme();
+  const { user } = useAuth();
   
+  const [favorites, setFavorites] = useState<{ [key: string]: any }>({});
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(initialShowFavorites);
+  const [loginPromptParams, setLoginPromptParams] = useState<{isOpen: boolean, message: string}>({ isOpen: false, message: "" });
+
   const placesLib = useMapsLibrary("places");
   const map = useMap("DEMO_MAP_ID");
+
+  useEffect(() => {
+    async function loadFavorites() {
+      if (!user) return;
+      try {
+        const favsRef = collection(db, `users/${user.uid}/favorites_radar`);
+        const snapshot = await getDocs(favsRef);
+        const favsMap: { [key: string]: any } = {};
+        snapshot.forEach((doc) => {
+          favsMap[doc.id] = doc.data();
+        });
+        setFavorites(favsMap);
+      } catch (error) {
+        console.error("Error loading favorites:", error);
+      }
+    }
+    loadFavorites();
+  }, [user]);
+
+  const toggleFavorite = async (result: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      setLoginPromptParams({ isOpen: true, message: "Kamu harus login untuk menyimpan favorit." });
+      return;
+    }
+    // We use a safe ID based on name and lat/lng
+    const venueId = encodeURIComponent(result.name).replace(/\./g, "_").slice(0, 50);
+    const docRef = doc(db, `users/${user.uid}/favorites_radar`, venueId);
+    
+    try {
+      if (favorites[venueId]) {
+        await deleteDoc(docRef);
+        setFavorites(prev => {
+          const next = { ...prev };
+          delete next[venueId];
+          return next;
+        });
+      } else {
+        const cleanResult = Object.fromEntries(
+          Object.entries(result).filter(([_, v]) => v !== undefined)
+        );
+        await setDoc(docRef, { ...cleanResult, savedAt: new Date() });
+        setFavorites(prev => ({ ...prev, [venueId]: { ...cleanResult, savedAt: new Date() } }));
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
+  };
 
   useEffect(() => {
     if (searchState.latitude) setManualLat(searchState.latitude);
@@ -64,6 +123,16 @@ export default function RadarResults() {
   useEffect(() => {
     async function loadData() {
       if (!placesLib) return;
+      if (initialShowFavorites && !searchState.vibeText && !searchState.recommendedSport) {
+        setData({
+          radarArea: "Favorit Tersimpan",
+          sportType: "Berbagai Olahraga",
+          results: []
+        });
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
 
       try {
@@ -243,11 +312,13 @@ export default function RadarResults() {
   }, [searchState, placesLib]);
 
   const sortedResults = React.useMemo(() => {
-    if (!data?.results) return [];
-    let results = [...data.results];
+    let results = data?.results ? [...data.results] : [];
     
-    // Filter by "Buka Sekarang" if enabled
-    if (isOpenOnly) {
+    if (showFavoritesOnly) {
+      // OVERRIDE results with our favorites so we can see them even if not in current search
+      results = Object.values(favorites);
+    } else if (isOpenOnly) {
+      // Filter by "Buka Sekarang" if enabled
       results = results.filter(r => r.isOpen === true);
     }
 
@@ -257,17 +328,17 @@ export default function RadarResults() {
       if (travelMode === "TWO_WHEELER") minsPerKm = 1.5; // (40km/h)
       if (travelMode === "WALK") minsPerKm = 12; // (5km/h)
       
-      const estimatedMins = Math.max(1, Math.round(r.rawDistance * minsPerKm));
+      const estimatedMins = Math.max(1, Math.round((r.rawDistance || 0) * minsPerKm));
       return { ...r, estimatedMins };
     });
 
     if (sortBy === "distance") {
-      resultsWithTime.sort((a, b) => a.rawDistance - b.rawDistance);
+      resultsWithTime.sort((a, b) => (a.rawDistance || 0) - (b.rawDistance || 0));
     } else {
-      resultsWithTime.sort((a, b) => b.ratingValue - a.ratingValue);
+      resultsWithTime.sort((a, b) => (b.ratingValue || 0) - (a.ratingValue || 0));
     }
     return resultsWithTime;
-  }, [data?.results, sortBy, travelMode]);
+  }, [data?.results, sortBy, travelMode, showFavoritesOnly, isOpenOnly, favorites]);
 
   useEffect(() => {
     if (map && selectedIndex !== null && sortedResults?.[selectedIndex]) {
@@ -343,6 +414,24 @@ export default function RadarResults() {
                 >
                   <Clock className={`w-3 h-3 ${isOpenOnly ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`} />
                   {isOpenOnly ? "DIFILTER: BUKA SEKARANG" : "FILTER: BUKA SEKARANG"}
+                </button>
+                <button 
+                   onClick={() => {
+                     if (!user) {
+                       setLoginPromptParams({ isOpen: true, message: "Kamu harus login untuk melihat favorit." });
+                       return;
+                     }
+                     setShowFavoritesOnly(!showFavoritesOnly);
+                     setSelectedIndex(null);
+                   }}
+                   className={`flex-1 py-2 px-4 rounded-xl border-2 border-slate-900 dark:border-slate-100 font-bold text-xs transition-all flex items-center justify-center gap-2 ${
+                     showFavoritesOnly 
+                      ? "bg-rose-400 dark:bg-rose-600 dark:text-slate-100 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] translate-y-[-2px] dark:border-rose-600" 
+                      : "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                   }`}
+                >
+                  <Heart className={`w-3 h-3 ${showFavoritesOnly ? 'text-white fill-white' : 'text-slate-400 dark:text-slate-500'}`} />
+                  {showFavoritesOnly ? "HANYA FAVORIT" : "FAVORIT"}
                 </button>
               </div>
 
@@ -469,7 +558,7 @@ export default function RadarResults() {
                       className="bg-white dark:bg-zinc-900 rounded-[24px] border-2 border-slate-900 dark:border-slate-100 p-4 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] transition-all cursor-pointer flex flex-col gap-3"
                     >
                       <div className="flex justify-between items-start">
-                        <div>
+                        <div className="flex-1 pr-2">
                           <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">{result.name}</h3>
                           <div className="flex items-center gap-3 mt-1 text-slate-500 dark:text-slate-400 font-semibold text-xs">
                              <div className="flex items-center gap-1">
@@ -480,8 +569,24 @@ export default function RadarResults() {
                              </div>
                           </div>
                         </div>
-                        <div className="bg-amber-300 dark:bg-amber-500 text-slate-900 rounded-xl px-2 py-1 font-bold text-xs mt-1">
-                          {result.ratingText}
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="bg-amber-300 dark:bg-amber-500 text-slate-900 rounded-xl px-2 py-1 font-bold text-xs mt-1">
+                            {result.ratingText}
+                          </div>
+                          <button 
+                            onClick={(e) => toggleFavorite(result, e)}
+                            className={`p-1.5 rounded-full border-2 border-slate-900 dark:border-slate-100 transition-colors ${
+                              favorites[encodeURIComponent(result.name).replace(/\./g, "_").slice(0, 50)]
+                                ? "bg-rose-400 dark:bg-rose-600"
+                                : "bg-white dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                            }`}
+                          >
+                            <Heart className={`w-4 h-4 ${
+                              favorites[encodeURIComponent(result.name).replace(/\./g, "_").slice(0, 50)]
+                                ? "text-white fill-white"
+                                : "text-slate-400 dark:text-slate-500"
+                            }`} />
+                          </button>
                         </div>
                       </div>
                       <div className="flex gap-2 flex-wrap">
@@ -749,6 +854,12 @@ export default function RadarResults() {
           </div>
         </div>
       )}
+
+      <LoginPromptModal 
+        isOpen={loginPromptParams.isOpen} 
+        onClose={() => setLoginPromptParams({ ...loginPromptParams, isOpen: false })} 
+        message={loginPromptParams.message} 
+      />
     </div>
   </div>
 );

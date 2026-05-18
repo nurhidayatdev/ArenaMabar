@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Mic, Keyboard, SlidersHorizontal, MapPin, Compass, X } from "lucide-react";
+import { Search, Mic, Keyboard, SlidersHorizontal, MapPin, Compass, X, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSearchContext } from "../context/SearchContext";
 import { useTranslation } from "react-i18next";
@@ -215,9 +215,17 @@ export default function CariLapangan() {
       <FloatingDecorations />
       {/* Title */}
       <div className="w-full max-w-4xl text-center mb-8 z-10">
-        <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight mb-3 uppercase">
-          {t("search.title_start")} <span className="text-indigo-600 dark:text-indigo-400">{t("search.title_end")}</span>
-        </h1>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-3">
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight uppercase m-0">
+            {t("search.title_start")} <span className="text-indigo-600 dark:text-indigo-400">{t("search.title_end")}</span>
+          </h1>
+          <button
+            onClick={() => navigate("/radar?tab=venue&showFavorites=true")}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-100 font-bold text-xs uppercase tracking-wide transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+          >
+            <Heart className="w-4 h-4 text-rose-500" /> Favorit
+          </button>
+        </div>
         <p className="text-slate-600 dark:text-slate-400 font-bold text-base max-w-xl mx-auto">
           {t("search.subtitle")}
         </p>
@@ -229,40 +237,6 @@ export default function CariLapangan() {
         {/* Single Panel: Options */}
         <div className="w-full bg-white dark:bg-zinc-900 rounded-[24px] p-5 sm:p-6 md:p-8 flex flex-col border-[3px] border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] sm:shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] sm:dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] mb-2 sm:mb-4 transition-colors">
           
-          {/* Mode Selector */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
-            <button
-              onClick={() => setActiveMode("preference")}
-              className={`w-full flex items-center justify-center gap-2 h-[52px] rounded-xl font-bold text-sm tracking-wide uppercase transition-all border-2 border-slate-900 dark:border-slate-100 ${
-                activeMode === "preference" 
-                  ? "bg-amber-400 dark:bg-amber-500 text-slate-900 dark:border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] translate-y-0" 
-                  : "bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
-              }`}
-            >
-              <SlidersHorizontal className="w-5 h-5 stroke-[2.5]" /> {t("search.tab.preference")}
-            </button>
-            <button
-              onClick={() => setActiveMode("text")}
-              className={`w-full flex items-center justify-center gap-2 h-[52px] rounded-xl font-bold text-sm tracking-wide uppercase transition-all border-2 border-slate-900 dark:border-slate-100 ${
-                activeMode === "text" 
-                  ? "bg-amber-400 dark:bg-amber-500 text-slate-900 dark:border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] translate-y-0" 
-                  : "bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
-              }`}
-            >
-              <Keyboard className="w-5 h-5 stroke-[2.5]" /> {t("search.tab.text")}
-            </button>
-            <button
-              onClick={() => setActiveMode("voice")}
-              className={`w-full flex items-center justify-center gap-2 h-[52px] rounded-xl font-bold text-sm tracking-wide uppercase transition-all border-2 border-slate-900 dark:border-slate-100 ${
-                activeMode === "voice" 
-                  ? "bg-amber-400 dark:bg-amber-500 text-slate-900 dark:border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] translate-y-0" 
-                  : "bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
-              }`}
-            >
-              <Mic className="w-5 h-5 stroke-[2.5]" /> {t("search.tab.voice")}
-            </button>
-          </div>
-
           {/* Preferences Content */}
           {activeMode === "preference" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
@@ -332,60 +306,12 @@ export default function CariLapangan() {
             </div>
           )}
 
-          {/* Text Content */}
-          {activeMode === "text" && (
-            <div className="flex flex-col flex-1 h-full min-h-[150px] mb-4">
-              <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-3 block tracking-wide">{t("search.text.label")}</label>
-              <textarea
-                className="w-full flex-1 bg-white dark:bg-zinc-900 rounded-2xl border-2 border-slate-900 dark:border-slate-100 p-4 font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-0 transition-transform hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] focus:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:focus:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] resize-none"
-                placeholder={t("search.text.placeholder")}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-          )}
-
-          {/* Voice Content */}
-          {activeMode === "voice" && (
-            <div className="flex flex-col items-center justify-center flex-1 py-4 gap-6 min-h-[150px] mb-4">
-              <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 block text-center tracking-wide">{t("search.voice.label")}</label>
-              
-              <button
-                onClick={handleVoiceToggle}
-                className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center transition-all border-4 border-slate-900 dark:border-slate-100 ${
-                  isRecording 
-                  ? "bg-red-500 shadow-none translate-y-1 animate-pulse dark:border-red-500" 
-                  : "bg-fuchsia-400 dark:bg-fuchsia-600 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
-                }`}
-              >
-                <Mic className={`w-10 h-10 sm:w-12 sm:h-12 stroke-[3] ${isRecording ? "text-white" : "text-slate-900 dark:text-white"}`} />
-              </button>
-
-              <div className="w-full max-w-lg text-center mt-2 bg-slate-50 dark:bg-zinc-900 rounded-2xl p-4 border-2 border-slate-900 dark:border-slate-100 min-h-[60px] flex flex-col items-center justify-center shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
-                {voiceError ? (
-                  <p className="text-red-500 font-bold text-lg">{voiceError}</p>
-                ) : isRecording && !transcript && !interimTranscript ? (
-                  <p className="text-red-500 font-bold animate-pulse text-lg">{t("search.voice.listening")}</p>
-                ) : transcript || interimTranscript ? (
-                  <p className="text-slate-900 dark:text-slate-100 font-bold text-lg">
-                    {transcript} <span className="opacity-50">{interimTranscript}</span>
-                  </p>
-                ) : (
-                  <p className="text-slate-500 dark:text-slate-400 font-bold">{t("search.voice.hint")}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeMode !== "voice" && (
-            <button
-              onClick={handleSubmit}
-              className="w-full h-[52px] mt-6 bg-emerald-400 hover:bg-emerald-500 text-slate-900 rounded-xl border-2 border-slate-900 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] transition-all active:shadow-none active:translate-y-0 dark:border-slate-100 dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]"
-            >
-              {t("search.btn_submit")}
-            </button>
-          )}
+          <button
+            onClick={handleSubmit}
+            className="w-full h-[52px] mt-6 bg-emerald-400 hover:bg-emerald-500 text-slate-900 rounded-xl border-2 border-slate-900 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] transition-all active:shadow-none active:translate-y-0 dark:border-slate-100 dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]"
+          >
+            {t("search.btn_submit")}
+          </button>
         </div>
 
       </div>

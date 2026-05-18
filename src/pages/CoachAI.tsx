@@ -7,23 +7,64 @@ import { useSearchContext } from "../context/SearchContext";
 import { chatWithCoach, ChatMessage, ChatPart } from "../services/geminiService";
 import { useTranslation } from "react-i18next";
 import FloatingDecorations from "../components/FloatingDecorations";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function CoachAI() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { updateSearchState } = useSearchContext();
+  const { user } = useAuth();
+  
+  const [profileData, setProfileData] = useState<{ displayName: string, favoriteSports: string[] } | null>(null);
+  
   const [messages, setMessages] = useState<ChatMessage[]>([{
     role: "model",
     parts: [{ text: t("coach.greeting") }]
   }]);
+  
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user) return;
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setProfileData({
+            displayName: data.displayName || "",
+            favoriteSports: data.favoriteSports || (data.favoriteSport ? [data.favoriteSport] : [])
+          });
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      }
+    }
+    loadProfile();
+  }, [user]);
+
   const [input, setInput] = useState("");
   const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(null);
   const [selectedImageMime, setSelectedImageMime] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const guideSeen = localStorage.getItem("coachGuideSeen");
+    if (!guideSeen) {
+      setShowGuideModal(true);
+    }
+  }, []);
+
+  const closeGuideModal = () => {
+    localStorage.setItem("coachGuideSeen", "true");
+    setShowGuideModal(false);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -161,7 +202,7 @@ export default function CoachAI() {
 
     try {
       // Fetch AI response
-      const reply = await chatWithCoach(newMessages);
+      const reply = await chatWithCoach(newMessages, profileData || undefined);
       setMessages([
         ...newMessages,
         { role: "model", parts: [{ text: reply }] }
@@ -215,11 +256,22 @@ export default function CoachAI() {
             }
 
             // Check for SEARCH_SHOPPER
-            const shopperMatch = processedText.match(/\[SEARCH_SHOPPER:\s*(.*?)\]/);
-            if (shopperMatch) {
+            const shopperMatchJSON = processedText.match(/\[SEARCH_SHOPPER:\s*(\{.*?\})\s*\]/s);
+            const shopperMatchOld = processedText.match(/\[SEARCH_SHOPPER:\s*(.*?)\]/);
+            let shopperData: any = null;
+            if (shopperMatchJSON) {
               actionType = "SHOPPER";
-              actionQuery = shopperMatch[1].trim();
-              processedText = processedText.replace(shopperMatch[0], "").trim();
+              try {
+                shopperData = JSON.parse(shopperMatchJSON[1].trim());
+                actionQuery = `${shopperData.category} ${shopperData.sport}`.trim();
+              } catch (e) {
+                actionQuery = "Rekomendasi Alat";
+              }
+              processedText = processedText.replace(shopperMatchJSON[0], "").trim();
+            } else if (shopperMatchOld) {
+              actionType = "SHOPPER";
+              actionQuery = shopperMatchOld[1].trim();
+              processedText = processedText.replace(shopperMatchOld[0], "").trim();
             }
 
             return (
@@ -256,7 +308,18 @@ export default function CoachAI() {
                     <button
                       onClick={() => {
                         if (actionType === "SHOPPER") {
-                           navigate("/shopper");
+                           if (shopperData) {
+                             navigate("/shopper-results", { state: {
+                               sport: shopperData.sport || "Olahraga",
+                               category: shopperData.category || actionQuery,
+                               specificNeeds: shopperData.specificNeeds || "",
+                               minBudget: parseInt(shopperData.minBudget) || 100000,
+                               maxBudget: parseInt(shopperData.maxBudget) || 10000000,
+                               level: parseInt(shopperData.level) || 3
+                             }});
+                           } else {
+                             navigate("/shopper");
+                           }
                         } else {
                            updateSearchState({ vibeText: actionQuery as string, recommendedSport: null });
                            navigate("/radar?tab=venue");
@@ -268,7 +331,7 @@ export default function CoachAI() {
                           : "bg-amber-400 dark:bg-amber-500 hover:bg-amber-300 dark:hover:bg-amber-400 text-slate-900 border-slate-900 dark:border-slate-100"
                       }`}
                     >
-                      {actionType === "SHOPPER" ? `Cari ${actionQuery} di AI Shopper` : `${t("coach.btn_radar")}${actionQuery}`}
+                      {actionType === "SHOPPER" ? `Cari ${actionQuery}` : `${t("coach.btn_radar")}${actionQuery}`}
                       <ArrowRight className="w-4 h-4 shrink-0" />
                     </button>
                   )}
@@ -346,6 +409,66 @@ export default function CoachAI() {
           </div>
         </div>
       </div>
+
+      {showGuideModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-[24px] border-[3px] border-slate-900 dark:border-slate-100 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] flex flex-col overflow-hidden relative">
+            <button 
+              onClick={closeGuideModal}
+              className="absolute top-4 right-4 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <X className="w-6 h-6 text-slate-500" />
+            </button>
+            <div className="p-6 pb-4 border-b-2 border-slate-900 dark:border-slate-100 bg-indigo-600 dark:bg-indigo-800">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-full border-2 border-slate-900 flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+                  <BrainCircuit className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="font-black text-white text-xl uppercase tracking-wider">Coach AI</h3>
+                  <p className="text-indigo-200 font-medium text-sm">Asisten Pintar Kamu</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 flex flex-col gap-4">
+              <h4 className="font-black text-slate-900 dark:text-slate-100 text-lg uppercase tracking-tight">Apa Saja Yang Bisa Dilakukan?</h4>
+              
+              <ul className="space-y-4">
+                <li className="flex gap-3">
+                  <span className="text-indigo-600 dark:text-indigo-400 font-black shrink-0">1.</span>
+                  <div>
+                    <h5 className="font-bold text-slate-900 dark:text-slate-100">Cari Lapangan</h5>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">"Cariin lapangan futsal deket Tebet dong!"</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-orange-500 font-black shrink-0">2.</span>
+                  <div>
+                    <h5 className="font-bold text-slate-900 dark:text-slate-100">Rekomendasi Alat</h5>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">"Sepatu basket buat main outdoor yang murah apaan ya?"</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-emerald-500 font-black shrink-0">3.</span>
+                  <div>
+                    <h5 className="font-bold text-slate-900 dark:text-slate-100">Tips Latihan & Diet</h5>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Upload foto makananmu, atau tanya gerakan pemanasan.</p>
+                  </div>
+                </li>
+              </ul>
+
+              <button 
+                onClick={closeGuideModal}
+                className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest py-3 px-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] active:translate-y-1 active:shadow-none transition-all text-sm"
+              >
+                Gas Ngobrol
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

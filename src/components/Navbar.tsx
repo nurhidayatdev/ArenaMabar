@@ -1,14 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "../lib/utils";
 import React, { useState, useEffect } from "react";
-import { Menu, X, Globe, Sun, Moon } from "lucide-react";
+import { Menu, X, Globe, Sun, Moon, UserCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [weatherInfo, setWeatherInfo] = useState<{ temp: number | null; location: string }>({
     temp: null,
@@ -133,7 +135,7 @@ export default function Navbar() {
     { name: t("nav.shopper"), path: "/shopper" },
     { name: t("nav.calculator"), path: "/kalkulator" },
     { name: t("nav.coach"), path: "/coach" },
-    { name: t("nav.faq"), path: "/faq" },
+    { name: user ? "PROFIL" : "MASUK", path: user ? "/profile" : "/login" }
   ];
 
   return (
@@ -148,13 +150,13 @@ export default function Navbar() {
           </Link>
         </div>
         
-        <nav className="hidden lg:flex bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-full px-5 py-2 gap-6 text-xs font-semibold shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] absolute left-1/2 -translate-x-1/2">
+        <nav className="hidden xl:flex bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-full px-4 xl:px-5 py-2 gap-3 xl:gap-6 text-xs font-semibold shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] absolute left-1/2 -translate-x-1/2">
           {links.map((link) => (
             <Link
               key={link.path}
               to={link.path}
               className={cn(
-                "transition-colors duration-100 font-semibold text-center uppercase tracking-wide",
+                "transition-colors duration-100 font-semibold text-center uppercase tracking-wide whitespace-nowrap flex items-center justify-center h-full",
                 location.pathname === link.path || (link.path === "/lapangan" && location.pathname.startsWith("/radar"))
                   ? "text-slate-900 dark:text-slate-100"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -208,7 +210,7 @@ export default function Navbar() {
             </p>
           </div>
           <button 
-            className="lg:hidden w-10 h-10 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-lg flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] z-50 relative"
+            className="xl:hidden w-10 h-10 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-lg flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] z-50 relative"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X className="w-5 h-5 text-slate-900 dark:text-slate-100" /> : <Menu className="w-5 h-5 text-slate-900 dark:text-slate-100" />}
@@ -218,7 +220,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-[#F8F9FA] dark:bg-zinc-950 pt-24 px-6 flex flex-col gap-6 transition-colors duration-200">
+        <div className="xl:hidden fixed inset-0 z-40 bg-[#F8F9FA] dark:bg-zinc-950 pt-24 px-6 flex flex-col gap-6 transition-colors duration-200">
           {links.map((link) => (
             <Link
               key={link.path}

@@ -11,11 +11,14 @@ import LandingPage from "./pages/LandingPage";
 import CoachAI from "./pages/CoachAI";
 import CariLapangan from "./pages/CariLapangan";
 import RadarResults from "./pages/RadarResults";
+import ShopperResults from "./pages/ShopperResults";
 import KalkulatorMabar from "./pages/KalkulatorMabar";
-import FAQ from "./pages/FAQ";
 import { SearchProvider } from "./context/SearchContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider } from "./context/AuthContext";
 import AIShopper from "./pages/AIShopper";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 
 const API_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || "";
 const hasValidKey = Boolean(API_KEY) && API_KEY !== 'YOUR_API_KEY';
@@ -44,24 +47,28 @@ export default function App() {
 
   return (
     <APIProvider apiKey={API_KEY} version="weekly">
-      <ThemeProvider>
-        <Router>
-          <SearchProvider>
-            <div className="min-h-screen flex flex-col font-sans dark:bg-zinc-950 dark:text-slate-100 transition-colors duration-200">
-              <Navbar />
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/lapangan" element={<CariLapangan />} />
-                <Route path="/shopper" element={<AIShopper />} />
-                <Route path="/coach" element={<CoachAI />} />
-                <Route path="/radar" element={<RadarResults />} />
-                <Route path="/kalkulator" element={<KalkulatorMabar />} />
-                <Route path="/faq" element={<FAQ />} />
-              </Routes>
-            </div>
-          </SearchProvider>
-        </Router>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <Router>
+            <SearchProvider>
+              <div className="min-h-screen flex flex-col font-sans dark:bg-zinc-950 dark:text-slate-100 transition-colors duration-200">
+                <Navbar />
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/lapangan" element={<CariLapangan />} />
+                  <Route path="/shopper" element={<AIShopper />} />
+                  <Route path="/shopper-results" element={<ShopperResults />} />
+                  <Route path="/coach" element={<CoachAI />} />
+                  <Route path="/radar" element={<RadarResults />} />
+                  <Route path="/kalkulator" element={<KalkulatorMabar />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/profile" element={<Profile />} />
+                </Routes>
+              </div>
+            </SearchProvider>
+          </Router>
+        </ThemeProvider>
+      </AuthProvider>
     </APIProvider>
   );
 }

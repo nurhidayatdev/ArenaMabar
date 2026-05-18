@@ -1,0 +1,35 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's full name"
+        },
+        "favoriteSport": {
+          "type": "string",
+          "description": "The user's favorite sport"
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short bio about the user"
+        },
+        "updatedAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["displayName", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profiles"
+    }
+  }
+}
