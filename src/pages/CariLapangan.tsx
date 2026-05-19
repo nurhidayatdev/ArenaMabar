@@ -8,23 +8,11 @@ import { Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 
 export default function CariLapangan() {
   const { t } = useTranslation();
-  const [activeMode, setActiveMode] = useState<"preference" | "text" | "voice">("preference");
   
   // Preference States
   const [sport, setSport] = useState("Soccer/Futsal");
   const [budget, setBudget] = useState(150000);
   const [distance, setDistance] = useState(5);
-  
-  // Text State
-  const [text, setText] = useState("");
-  
-  // Voice State
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [interimTranscript, setInterimTranscript] = useState("");
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-  const recognitionRef = useRef<any>(null);
-  const transcriptRef = useRef("");
   
   const { searchState, updateSearchState } = useSearchContext();
   const navigate = useNavigate();
@@ -32,10 +20,6 @@ export default function CariLapangan() {
   const [showMapModal, setShowMapModal] = useState(false);
   const [pendingQuery, setPendingQuery] = useState("");
   const [tempLocation, setTempLocation] = useState<{lat: number, lng: number} | null>(null);
-
-  useEffect(() => {
-    transcriptRef.current = transcript;
-  }, [transcript]);
 
   useEffect(() => {
     let mounted = true;
@@ -92,98 +76,17 @@ export default function CariLapangan() {
       fetchFallbackLocation();
     }
 
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'id-ID';
-
-      recognitionRef.current.onresult = (event: any) => {
-        let finalTrans = '';
-        let interimTrans = '';
-        
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTrans += event.results[i][0].transcript;
-          } else {
-            interimTrans += event.results[i][0].transcript;
-          }
-        }
-        
-        if (finalTrans) {
-          setTranscript(prev => prev ? prev + ' ' + finalTrans : finalTrans);
-        }
-        setInterimTranscript(interimTrans);
-      };
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-        if (event.error === 'not-allowed') {
-          setVoiceError(t("search.voice.denied"));
-        }
-        setIsRecording(false);
-      };
-
-      recognitionRef.current.onend = () => {
-        setIsRecording(false);
-        setInterimTranscript("");
-        
-        // Auto submit if we have transcript
-        if (transcriptRef.current.trim()) {
-          updateSearchState({ vibeText: transcriptRef.current, recommendedSport: null });
-          navigate("/radar?tab=venue");
-        }
-      };
-    }
-
     return () => {
       mounted = false;
     };
   }, []); // Run once on mount to avoid infinite loops
 
-  const handleVoiceToggle = () => {
-    setVoiceError(null);
-    if (!recognitionRef.current) {
-      setVoiceError(t("search.voice.unsupported"));
-      return;
-    }
-
-    if (isRecording) {
-      recognitionRef.current.stop();
-      setIsRecording(false);
-    } else {
-      setTranscript("");
-      setInterimTranscript("");
-      try {
-        recognitionRef.current.start();
-        setIsRecording(true);
-      } catch (error) {
-        console.error("Speech recognition start error", error);
-      }
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey && activeMode === "text") {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
-
   const handleSubmit = () => {
     let query = "";
-    if (activeMode === "preference") {
-      const locationAddonId = searchState.userCity ? ` di ${searchState.userCity}` : '';
+    const locationAddonId = searchState.userCity ? ` di ${searchState.userCity}` : '';
+    query = `Cari lapangan ${sport}, budget sekitar Rp${budget.toLocaleString("id-ID")}, maksimal jarak ${distance}km dari lokasi saya${locationAddonId}.`;
 
-      query = `Cari lapangan ${sport}, budget sekitar Rp${budget.toLocaleString("id-ID")}, maksimal jarak ${distance}km dari lokasi saya${locationAddonId}.`;
-    } else if (activeMode === "text") {
-      query = text;
-    } else if (activeMode === "voice") {
-      query = transcript;
-    }
-
-    if (query.trim() && !isRecording) {
+    if (query.trim()) {
       setPendingQuery(query);
       if (searchState.latitude && searchState.longitude) {
         setTempLocation({ lat: searchState.latitude, lng: searchState.longitude });
@@ -235,9 +138,8 @@ export default function CariLapangan() {
         <div className="w-full bg-white dark:bg-zinc-900 rounded-[24px] p-5 sm:p-6 md:p-8 flex flex-col border-[3px] border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] sm:shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] sm:dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] mb-2 sm:mb-4 transition-colors">
           
           {/* Preferences Content */}
-          {activeMode === "preference" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
-              <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+            <div className="flex flex-col gap-6">
                 <div>
                   <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-3 block tracking-wide">{t("search.pref.sport")}</label>
                   <div className="flex flex-wrap gap-2">
@@ -301,7 +203,6 @@ export default function CariLapangan() {
                 </div>
               </div>
             </div>
-          )}
 
           <button
             onClick={handleSubmit}
