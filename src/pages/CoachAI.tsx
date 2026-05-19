@@ -5,14 +5,12 @@ import remarkGfm from "remark-gfm";
 import { useNavigate } from "react-router-dom";
 import { useSearchContext } from "../context/SearchContext";
 import { chatWithCoach, ChatMessage, ChatPart } from "../services/geminiService";
-import { useTranslation } from "react-i18next";
 import FloatingDecorations from "../components/FloatingDecorations";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function CoachAI() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { updateSearchState } = useSearchContext();
   const { user } = useAuth();
@@ -21,7 +19,7 @@ export default function CoachAI() {
   
   const [messages, setMessages] = useState<ChatMessage[]>([{
     role: "model",
-    parts: [{ text: t("coach.greeting") }]
+    parts: [{ text: "Halo bre! Gw Coach AI. Mau ngobrolin program latihan, cari tempat main, atau cari alat olahraga?" }]
   }]);
   
   useEffect(() => {
@@ -138,7 +136,7 @@ export default function CoachAI() {
        const newMsgs = [...prev];
        if (newMsgs.length > 0 && newMsgs[0].role === 'model') {
            // Replace first message with translated greeting
-           newMsgs[0] = { role: "model", parts: [{ text: t("coach.greeting") }] };
+           newMsgs[0] = { role: "model", parts: [{ text: "Halo bre! Gw Coach AI. Mau ngobrolin program latihan, cari tempat main, atau cari alat olahraga?" }] };
        }
        return newMsgs;
     });
@@ -210,7 +208,7 @@ export default function CoachAI() {
     } catch (e) {
       setMessages([
         ...newMessages,
-        { role: "model", parts: [{ text: t("coach.error") }] }
+        { role: "model", parts: [{ text: "Waduh, sinyalnya lagi jelek nih. Coba tanya lagi dong!" }] }
       ]);
     } finally {
       setIsLoading(false);
@@ -235,8 +233,8 @@ export default function CoachAI() {
             <BrainCircuit className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-white uppercase tracking-wider">{t("coach.title")}</h1>
-            <p className="text-indigo-200 dark:text-indigo-300 text-sm font-medium leading-none">{t("coach.subtitle")}</p>
+            <h1 className="text-xl font-black text-white uppercase tracking-wider">{"Coach AI"}</h1>
+            <p className="text-indigo-200 dark:text-indigo-300 text-sm font-medium leading-none">{"Asisten AI pintar untuk semua kebutuhan olahragamu: latihan, cari lapangan, hingga rekomendasi gear."}</p>
           </div>
         </div>
 
@@ -331,7 +329,7 @@ export default function CoachAI() {
                           : "bg-amber-400 dark:bg-amber-500 hover:bg-amber-300 dark:hover:bg-amber-400 text-slate-900 border-slate-900 dark:border-slate-100"
                       }`}
                     >
-                      {actionType === "SHOPPER" ? `Cari ${actionQuery}` : `${t("coach.btn_radar")}${actionQuery}`}
+                      {actionType === "SHOPPER" ? `Cari ${actionQuery}` : `${"Buka Radar: "}${actionQuery}`}
                       <ArrowRight className="w-4 h-4 shrink-0" />
                     </button>
                   )}
@@ -346,7 +344,7 @@ export default function CoachAI() {
               </div>
               <div className="px-5 py-3 rounded-[20px] rounded-tl-none border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] flex items-center gap-2 transition-colors">
                  <Loader2 className="w-4 h-4 text-slate-900 dark:text-slate-100 animate-spin" />
-                 <span className="text-slate-600 dark:text-slate-300 text-sm font-bold">{t("coach.thinking")}</span>
+                 <span className="text-slate-600 dark:text-slate-300 text-sm font-bold">{"Coach lagi mikir..."}</span>
               </div>
             </div>
           )}
@@ -392,7 +390,7 @@ export default function CoachAI() {
             </button>
             <textarea
               className="flex-1 bg-[#F8F9FA] dark:bg-zinc-950 rounded-[16px] sm:rounded-[20px] border-2 border-slate-900 dark:border-slate-600 px-3 sm:px-4 py-2 sm:py-3 font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none resize-none max-h-[120px] min-h-[44px] sm:min-h-[52px] text-sm sm:text-base object-contain transition-colors"
-              placeholder={t("coach.chat_placeholder")}
+              placeholder={"Tanya apa saja seputar latihan, cari lapangan, atau rekomendasi gear..."}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}

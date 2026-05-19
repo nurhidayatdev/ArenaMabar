@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import { ArrowRight, MapPin, HeartPulse, CheckCircle2, Zap, Calculator, ChevronDown, MessageCircle, BrainCircuit, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { useTranslation } from "react-i18next";
 import FloatingDecorations from "../components/FloatingDecorations";
 
 import Footer from "../components/Footer";
 export default function LandingPage() {
-  const { t } = useTranslation();
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
   const faqs = [
@@ -60,10 +58,10 @@ export default function LandingPage() {
             className="flex flex-col items-center relative"
           >
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 dark:text-slate-100 tracking-tight leading-tight mb-6">
-              {t("landing.hero.title_start")}<br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-fuchsia-500 dark:from-indigo-400 dark:to-fuchsia-400">{t("landing.hero.title_end")}</span>
+              {"Temukan Lapangan,"}<br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-fuchsia-500 dark:from-indigo-400 dark:to-fuchsia-400">{"Mulai Main!"}</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-medium leading-relaxed mb-8">
-              {t("landing.hero.subtitle")}
+              {"Aplikasi all-in-one untuk anak sports. Cari lapangan terdekat, atur patungan mabar tanpa ribet, dapatkan rekomendasi alat terbaik, sampai ngobrol seru bareng Coach AI cerdas."}
             </p>
           </motion.div>
 
@@ -74,7 +72,7 @@ export default function LandingPage() {
             className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-lg"
           >
             <Link to="/lapangan" className="bg-indigo-600 dark:bg-indigo-500 w-full sm:w-auto text-white rounded-full border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] px-8 py-3 text-base font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
-              {t("landing.hero.btn_find")} <ArrowRight className="w-5 h-5" />
+              {"Mulai Cari Lapangan"} <ArrowRight className="w-5 h-5" />
             </Link>
           </motion.div>
         </section>

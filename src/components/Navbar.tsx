@@ -2,12 +2,10 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "../lib/utils";
 import React, { useState, useEffect } from "react";
 import { Menu, X, Globe, Sun, Moon, UserCircle2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { t, i18n } = useTranslation();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
@@ -117,11 +115,11 @@ export default function Navbar() {
   }, []);
 
   const links = [
-    { name: t("nav.home"), path: "/" },
-    { name: t("nav.find_court"), path: "/lapangan" },
-    { name: t("nav.shopper"), path: "/shopper" },
-    { name: t("nav.calculator"), path: "/kalkulator" },
-    { name: t("nav.coach"), path: "/coach" },
+    { name: "Beranda", path: "/" },
+    { name: "Cari Lapangan", path: "/lapangan" },
+    { name: "Rekomendasi Alat", path: "/shopper" },
+    { name: "Kalkulator Mabar", path: "/kalkulator" },
+    { name: "Coach AI", path: "/coach" },
     { name: user ? "Profil" : "Masuk", path: user ? "/profile" : "/login" }
   ];
 
