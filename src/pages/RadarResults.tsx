@@ -6,11 +6,13 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { fetchRecommendations, RadarRecommendation } from "../services/geminiService";
 import { Map, AdvancedMarker, Pin, useMapsLibrary, useMap } from "@vis.gl/react-google-maps";
+import { useTranslation } from "react-i18next";
 import { db } from "../lib/firebase";
 import { collection, doc, getDocs, setDoc, deleteDoc } from "firebase/firestore";
 import LoginPromptModal from "../components/LoginPromptModal";
 
 export default function RadarResults() {
+  const { t } = useTranslation();
   const { searchState, updateSearchState } = useSearchContext();
   const location = useLocation();
   const navigate = useNavigate();
@@ -349,7 +351,7 @@ export default function RadarResults() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100dvh-6rem)]">
         <Loader2 className="w-16 h-16 animate-spin text-indigo-600 dark:text-indigo-400 mb-4" />
-        <h2 className="text-2xl font-bold animate-pulse text-slate-900 dark:text-slate-100">{"AI sedang memindai area..."}</h2>
+        <h2 className="text-2xl font-bold animate-pulse text-slate-900 dark:text-slate-100">{t("radar.scanning")}</h2>
       </div>
     );
   }
@@ -375,7 +377,7 @@ export default function RadarResults() {
                       onClick={() => setShowFilter(!showFilter)}
                       className="bg-white dark:bg-zinc-800 rounded-full px-3 py-1 border-2 border-slate-900 dark:border-slate-600 font-semibold text-xs flex items-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-600text-slate-900 dark:text-slate-100 transition-colors"
                     >
-                      <SlidersHorizontal className="w-3 h-3 stroke-[2]" /> {"Urutkan"}
+                      <SlidersHorizontal className="w-3 h-3 stroke-[2]" /> {t("radar.btn_sort")}
                     </button>
                     {showFilter && (
                       <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 overflow-hidden">
@@ -383,13 +385,13 @@ export default function RadarResults() {
                           onClick={() => { setSortBy("distance"); setShowFilter(false); setSelectedIndex(null); }}
                           className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 border-b-2 border-slate-100 dark:border-slate-100 ${sortBy === "distance" ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400" : "text-slate-700 dark:text-slate-300"}`}
                         >
-                          {"\ud83d\udccd Jarak Terdekat"}
+                          {t("radar.sort.distance")}
                         </button>
                         <button 
                           onClick={() => { setSortBy("rating"); setShowFilter(false); setSelectedIndex(null); }}
                           className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 ${sortBy === "rating" ? "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" : "text-slate-700 dark:text-slate-300"}`}
                         >
-                          {"\u2b50 Rating Tertinggi"}
+                          {t("radar.sort.rating")}
                         </button>
                       </div>
                     )}
@@ -484,7 +486,7 @@ export default function RadarResults() {
                   </div>
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-slate-500 dark:text-slate-400 font-medium">
-                    {"Peta tidak dapat dimuat atau tidak ada hasil di area ini. Pastikan konfigurasi Maps API benar."}
+                    {t("radar.error.map")}
                   </div>
                 )}
               </div>
@@ -509,7 +511,7 @@ export default function RadarResults() {
                        </p>
                      </div>
                      <h1 className="font-bold text-xl leading-tight text-white m-0 tracking-tight relative z-10">
-                       {`Ditemukan ${sortedResults.length} Lapangan`}<br />{"Terdekat & Terbaik"}
+                       {t("radar.results.found", {count: sortedResults.length})}<br />{t("radar.results.best")}
                       </h1>
 
                       {/* Travel Mode Selector */}
@@ -613,7 +615,7 @@ export default function RadarResults() {
               <div className="p-4 pb-2">
                 <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold mb-3">
                   <BrainCircuit className="w-3 h-3" />
-                  {"AI OPTIMIZED SUMMARY"}
+                  {t("radar.detail.summary")}
                 </div>
                 <h1 className="font-bold text-2xl leading-tight text-white m-0 tracking-tight">
                   {sortedResults[selectedIndex]?.name}
@@ -663,7 +665,7 @@ export default function RadarResults() {
                       <MapPin className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{"Alamat Lengkap"}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{t("radar.detail.address")}</p>
                       <p className="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5">{sortedResults[selectedIndex]?.address || "-"}</p>
                     </div>
                   </div>
@@ -697,7 +699,7 @@ export default function RadarResults() {
                     <div className="p-1.5 bg-white/50 dark:bg-white/20 rounded-lg text-sm">🚧</div>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-900">{"Tips Bermain"}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-900">{t("radar.detail.tips")}</p>
                     <p className="text-xs font-bold text-slate-900 mt-1">{sortedResults[selectedIndex]?.tips}</p>
                   </div>
               </div>
@@ -710,7 +712,7 @@ export default function RadarResults() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{"Fasilitas (Info Lokal)"}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{t("radar.detail.facilities")}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {sortedResults[selectedIndex]?.facilities?.map((fac: any, i: number) => (
                         <span key={i} className="bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">{fac}</span>
@@ -726,19 +728,19 @@ export default function RadarResults() {
                 <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                   <MessageCircle className="w-4 h-4 stroke-[2]" />
                 </div>
-                <span className="text-xs">{"HUBUNGI TEMPAT"}</span>
+                <span className="text-xs">{t("radar.detail.btn_contact")}</span>
               </button>
               <a 
                 href={sortedResults[selectedIndex]?.googleMapsURI || `https://www.google.com/maps/dir/?api=1&destination=${sortedResults[selectedIndex]?.lat},${sortedResults[selectedIndex]?.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-[24px] p-4 font-bold flex flex-col items-center justify-center group shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors"
-                title={"RUTE MAPS"}
+                title={t("radar.detail.btn_route")}
               >
                 <div className="w-8 h-8 bg-white/20 dark:bg-black/10 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                   <Navigation className="w-4 h-4 stroke-[2]" />
                 </div>
-                <span className="text-xs">{"RUTE MAPS"}</span>
+                <span className="text-xs">{t("radar.detail.btn_route")}</span>
               </a>
             </div>
           </div>
@@ -752,7 +754,7 @@ export default function RadarResults() {
             <h3 className="font-black text-xl mb-1 uppercase tracking-tighter text-amber-500">Peringatan!</h3>
             <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 bg-slate-100 dark:bg-zinc-800 p-2 rounded-lg border border-slate-200 dark:border-slate-600">{selectedIndex !== null ? sortedResults[selectedIndex]?.name : ""}</p>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-pre-line mb-6">
-              {"PENTING: Nomor WhatsApp/Telepon ini otomatis diambil dari Google Maps dan sering kali tidak aktif atau belum diupdate oleh pemiliknya. Pastikan untuk memvalidasi tempat ini terlebih dahulu atau berhati-hati sebelum melakukan DP/Transaksi.\n\nLanjutkan menghubungi via WhatsApp?"}
+              {t("radar.alert.wa_warning")}
             </p>
             <div className="flex gap-3 mt-auto">
                 <button 
@@ -781,7 +783,7 @@ export default function RadarResults() {
           <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-6 max-w-sm w-full border-2 border-slate-900 dark:border-slate-100 flex flex-col shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] items-center text-center">
             <h3 className="font-black text-xl mb-3 text-slate-900 dark:text-slate-100 uppercase">Maaf</h3>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-pre-line mb-6">
-              {"Maaf, nomor telepon/WhatsApp untuk tempat ini tidak tersedia."}
+              {t("radar.alert.wa_no_number")}
             </p>
             <button 
               onClick={() => setShowNoNumberModal(false)}

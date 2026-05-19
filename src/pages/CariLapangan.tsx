@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { Search, Mic, Keyboard, SlidersHorizontal, MapPin, Compass, X, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSearchContext } from "../context/SearchContext";
+import { useTranslation } from "react-i18next";
 import FloatingDecorations from "../components/FloatingDecorations";
 import { Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 
 export default function CariLapangan() {
+  const { t } = useTranslation();
   const [activeMode, setActiveMode] = useState<"preference" | "text" | "voice">("preference");
   
   // Preference States
@@ -118,7 +120,7 @@ export default function CariLapangan() {
       recognitionRef.current.onerror = (event: any) => {
         console.error("Speech recognition error:", event.error);
         if (event.error === 'not-allowed') {
-          setVoiceError("Akses mikrofon ditolak. Mohon izinkan akses mikrofon di browser Anda untuk menggunakan fitur ini.");
+          setVoiceError(t("search.voice.denied"));
         }
         setIsRecording(false);
       };
@@ -143,7 +145,7 @@ export default function CariLapangan() {
   const handleVoiceToggle = () => {
     setVoiceError(null);
     if (!recognitionRef.current) {
-      setVoiceError("Browser Anda tidak mendukung fitur pesan suara.");
+      setVoiceError(t("search.voice.unsupported"));
       return;
     }
 
@@ -212,7 +214,7 @@ export default function CariLapangan() {
       <div className="w-full max-w-4xl text-center mb-8 z-10">
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-3">
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight uppercase m-0">
-            {"Cari Lapangan"} <span className="text-indigo-600 dark:text-indigo-400">{"Olahraga"}</span>
+            {t("search.title_start")} <span className="text-indigo-600 dark:text-indigo-400">{t("search.title_end")}</span>
           </h1>
           <button
             onClick={() => navigate("/radar?tab=venue&showFavorites=true")}
@@ -222,7 +224,7 @@ export default function CariLapangan() {
           </button>
         </div>
         <p className="text-slate-600 dark:text-slate-400 font-bold text-base max-w-xl mx-auto">
-          {"Pilih preferensi, ketik tempat impianmu, atau gunakan suara. Biar AI yang cariin!"}
+          {t("search.subtitle")}
         </p>
       </div>
 
@@ -237,7 +239,7 @@ export default function CariLapangan() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
               <div className="flex flex-col gap-6">
                 <div>
-                  <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-3 block tracking-wide">{"Olahraga"}</label>
+                  <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-3 block tracking-wide">{t("search.pref.sport")}</label>
                   <div className="flex flex-wrap gap-2">
                     {["Soccer/Futsal", "Basketball", "Badminton", "Tennis", "Volleyball", "Table Tennis", "Golf", "Swimming", "Billiard", "Bowling", "Gym/Fitness"].map((s) => (
                       <button
@@ -268,7 +270,7 @@ export default function CariLapangan() {
               <div className="flex flex-col gap-6">
                 <div className="bg-slate-50 dark:bg-zinc-900/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-900 dark:border-slate-100">
                   <div className="flex justify-between items-center mb-4">
-                    <label className="text-xs sm:text-sm font-black uppercase text-slate-900 dark:text-slate-100 tracking-wide">{"Maks. Harga / Jam"}</label>
+                    <label className="text-xs sm:text-sm font-black uppercase text-slate-900 dark:text-slate-100 tracking-wide">{t("search.pref.budget")}</label>
                     <span className="font-bold text-sm text-indigo-600 dark:text-indigo-400 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 px-2 sm:px-3 py-1.5 rounded-lg shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">Rp {budget.toLocaleString("id-ID")}</span>
                   </div>
                   <input
@@ -284,7 +286,7 @@ export default function CariLapangan() {
 
                 <div className="bg-slate-50 dark:bg-zinc-900/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-900 dark:border-slate-100">
                   <div className="flex justify-between items-center mb-4">
-                    <label className="text-xs sm:text-sm font-black uppercase text-slate-900 dark:text-slate-100 tracking-wide">{"Jarak Maksimal"}</label>
+                    <label className="text-xs sm:text-sm font-black uppercase text-slate-900 dark:text-slate-100 tracking-wide">{t("search.pref.distance")}</label>
                     <span className="font-bold text-sm text-fuchsia-600 dark:text-fuchsia-400 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 px-2 sm:px-3 py-1.5 rounded-lg shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{distance} km</span>
                   </div>
                   <input
@@ -305,7 +307,7 @@ export default function CariLapangan() {
             onClick={handleSubmit}
             className="w-full h-[52px] mt-6 bg-emerald-400 hover:bg-emerald-500 text-slate-900 rounded-xl border-2 border-slate-900 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] transition-all active:shadow-none active:translate-y-0 dark:border-slate-100 dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]"
           >
-            {"Cariin Tempat! \ud83d\ude80"}
+            {t("search.btn_submit")}
           </button>
         </div>
 

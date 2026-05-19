@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, Heart } from "lucide-react";
 import FloatingDecorations from "../components/FloatingDecorations";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 const formatRupiah = (value: number) => {
@@ -13,6 +14,7 @@ const parseRupiah = (value: string) => {
 };
 
 export default function AIShopper() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
@@ -25,7 +27,7 @@ export default function AIShopper() {
   const [maxBudget, setMaxBudget] = useState(2000000);
   const [level, setLevel] = useState(3); // 1 to 5
   
-  const OTHER_STRING = "Lainnya...";
+  const OTHER_STRING = t("shop.others");
   const sports = [
     t("shop.sport.soccer", "Sepakbola/Futsal"), 
     t("shop.sport.basketball", "Basket"), 
@@ -58,7 +60,7 @@ export default function AIShopper() {
   sportCategories[OTHER_STRING] = ["Sepatu", "Pakaian", "Alat Spesifik", "Aksesori", "Tas"];
   const currentCategories = sportCategories[sport] || sportCategories[OTHER_STRING];
   
-  const levels = ["Pemula", "Amatir", "Menengah", "Lanjutan", "Profesional"];
+  const levels = [t("shop.level.1"), t("shop.level.2"), t("shop.level.3"), t("shop.level.4"), t("shop.level.5")];
 
 
   // Update category when sport changes if it's not in the new list
@@ -92,7 +94,7 @@ export default function AIShopper() {
       <div className="w-full max-w-4xl text-center mb-8 z-10">
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-3">
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight uppercase m-0">
-            {"Rekomendasi"} <span className="text-orange-500">{"Alat"}</span>
+            {t("shop.title_start")} <span className="text-orange-500">{t("shop.title_end")}</span>
           </h1>
           <button
             onClick={() => navigate('/shopper-results', { state: { showFavorites: true, sport: '', category: '', specificNeeds: '', minBudget: 0, maxBudget: 0, level: '' } })}
@@ -128,14 +130,14 @@ export default function AIShopper() {
             ))}
           </div>
           <span className="font-black text-sm text-slate-500 dark:text-slate-400">
-            {`LANGKAH ${currentStep} / ${totalSteps }`}
+            {t("shop.step_indicator", { current: currentStep, total: totalSteps })}
           </span>
         </div>
 
         <div className="flex-1 flex flex-col justify-start">
           {currentStep === 1 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{"Pilih Olahraga"}</h2>
+              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{t("shop.step1.title")}</h2>
               <div className="flex flex-wrap gap-2">
                 {sports.filter(s => s !== OTHER_STRING).map((s) => (
                   <button
@@ -154,7 +156,7 @@ export default function AIShopper() {
               <div className="mt-4">
                 <input
                   type="text"
-                  placeholder={"Atau tulis olahraga lain..."}
+                  placeholder={t("shop.step1.other")}
                   value={sports.filter(s => s !== OTHER_STRING).includes(sport) ? "" : sport}
                   onChange={(e) => setSport(e.target.value)}
                   className="w-full h-[52px] px-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-emerald-500 focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
@@ -165,9 +167,9 @@ export default function AIShopper() {
 
           {currentStep === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{"Kategori & Kebutuhan"}</h2>
+              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{t("shop.step2.title")}</h2>
               <div className="mb-5">
-                <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-3 block tracking-wide">{"PILIH KATEGORI ALAT"}</label>
+                <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-3 block tracking-wide">{t("shop.step2.pretitle")}</label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {currentCategories.map((c) => (
                     <button
@@ -196,7 +198,7 @@ export default function AIShopper() {
 
           {currentStep === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-               <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{"Level Permainan"}</h2>
+               <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{t("shop.step3.title")}</h2>
                <div className="flex flex-wrap gap-2">
                  {levels.map((lvl, index) => (
                     <button
@@ -217,10 +219,10 @@ export default function AIShopper() {
 
           {currentStep === 4 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{"Rentang Budget"}</h2>
+              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-tight">{t("shop.step4.title")}</h2>
               <div className="bg-slate-50 dark:bg-zinc-800 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 space-y-5">
                 <div>
-                  <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-2 block tracking-wide">{"PILIH PRESET BUDGET"}</label>
+                  <label className="text-sm font-black uppercase text-slate-900 dark:text-slate-100 mb-2 block tracking-wide">{t("shop.step4.pretitle")}</label>
                   <select 
                     onChange={(e) => {
                        if(e.target.value) {
@@ -231,7 +233,7 @@ export default function AIShopper() {
                     }}
                     className="w-full h-[52px] px-4 py-0 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-white dark:bg-zinc-900 font-bold text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-0 outline-none transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] appearance-none cursor-pointer"
                   >
-                    <option value="">{"-- Ketik manual atau pilih preset --"}</option>
+                    <option value="">{t("shop.step4.preset_default")}</option>
                     <option value="100000-500000">Rp 100.000 - Rp 500.000</option>
                     <option value="500000-1000000">Rp 500.000 - Rp 1.000.000</option>
                     <option value="1000000-2000000">Rp 1.000.000 - Rp 2.000.000</option>
@@ -241,7 +243,7 @@ export default function AIShopper() {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <div className="w-full sm:flex-1">
-                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-2 block tracking-wide">{"BUDGET MINIMAL"}</label>
+                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-2 block tracking-wide">{t("shop.step4.min_label")}</label>
                     <div className="relative h-[52px]">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-500 dark:text-slate-400 text-sm">Rp</span>
                       <input
@@ -254,7 +256,7 @@ export default function AIShopper() {
                   </div>
                   <div className="hidden sm:block text-xl font-black text-slate-400 mt-6">-</div>
                   <div className="w-full sm:flex-1">
-                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-2 block tracking-wide">{"BUDGET MAKSIMAL"}</label>
+                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-2 block tracking-wide">{t("shop.step4.max_label")}</label>
                     <div className="relative h-[52px]">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-500 dark:text-slate-400 text-sm">Rp</span>
                       <input
@@ -282,7 +284,7 @@ export default function AIShopper() {
                 : "border-slate-900 dark:border-slate-100 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-zinc-800 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
             }`}
           >
-            {"Kembali"}
+            {t("shop.btn_back")}
           </button>
           
           {currentStep < totalSteps ? (
@@ -290,14 +292,14 @@ export default function AIShopper() {
               onClick={nextStep}
               className="w-2/3 h-[52px] bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white rounded-xl border-2 border-slate-900 dark:border-slate-100 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] transition-all active:shadow-none active:translate-y-0 focus:outline-none"
             >
-              {"Lanjut"} <ArrowRight className="w-4 h-4" />
+              {t("shop.btn_next")} <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
               onClick={handleSearch}
               className="w-2/3 h-[52px] bg-orange-500 hover:bg-orange-600 text-slate-900 rounded-xl border-2 border-slate-900 dark:border-slate-100 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] transition-all active:shadow-none active:translate-y-0"
             >
-              <>{"CARI GEAR!"}</>
+              <>{t("shop.btn_search")}</>
             </button>
           )}
         </div>

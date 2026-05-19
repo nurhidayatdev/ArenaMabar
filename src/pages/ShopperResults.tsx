@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, Loader2, ExternalLink, ArrowLeft, AlertCircle, ArrowDownAZ, ArrowUpAZ, Heart } from "lucide-react";
 import { fetchShopperRecommendations, ShopperRecommendation } from "../services/geminiService";
+import { useTranslation } from "react-i18next";
 import FloatingDecorations from "../components/FloatingDecorations";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/firebase";
@@ -9,6 +10,7 @@ import { collection, doc, getDocs, setDoc, deleteDoc } from "firebase/firestore"
 import LoginPromptModal from "../components/LoginPromptModal";
 
 export default function ShopperResults() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -149,7 +151,7 @@ export default function ShopperResults() {
             <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" /> {t("shop.btn_back", "Kembali")}
           </button>
           <div className="text-right">
-            <h1 className="text-xl md:text-3xl font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">{"Rekomendasi"} <span className="text-orange-500">{"Alat"}</span></h1>
+            <h1 className="text-xl md:text-3xl font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">{t("shop.title_start")} <span className="text-orange-500">{t("shop.title_end")}</span></h1>
           </div>
         </div>
 
@@ -168,8 +170,8 @@ export default function ShopperResults() {
         ) : isLoading ? (
           <div className="flex-1 w-full flex flex-col items-center justify-center text-center p-8 bg-white dark:bg-zinc-900 rounded-[32px] border-[3px] border-slate-900 dark:border-slate-100 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] mt-12 py-20">
             <Loader2 className="w-16 h-16 animate-spin text-orange-500 mb-6" />
-            <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-slate-100 mb-3">{"Mencari Gear Terbaik..."}</h3>
-            <p className="text-slate-500 dark:text-slate-400 font-bold max-w-md text-base md:text-lg">{"Tunggu sebentar, AI sedang memilih produk tervalidasi yang paling pas buat kamu di E-Commerce!"}</p>
+            <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-slate-100 mb-3">{t("shop.empty.loading_title")}</h3>
+            <p className="text-slate-500 dark:text-slate-400 font-bold max-w-md text-base md:text-lg">{t("shop.empty.loading_desc")}</p>
           </div>
         ) : (
           <div className="w-full mt-4">
@@ -242,7 +244,7 @@ export default function ShopperResults() {
                      rel="noopener noreferrer"
                      className="mt-auto w-full py-3 bg-orange-500 hover:bg-orange-600 text-slate-900 rounded-xl border-[3px] border-slate-900 dark:border-slate-100 font-black text-xs sm:text-sm uppercase tracking-widest text-center flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] active:translate-y-0 active:shadow-none transition-all dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
                    >
-                     {"Cek di E-Commerce"} <ExternalLink className="w-4 h-4" />
+                     {t("shop.btn_ecommerce")} <ExternalLink className="w-4 h-4" />
                    </a>
                 </div>
               ))}
