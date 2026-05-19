@@ -7,7 +7,7 @@ import FloatingDecorations from "../components/FloatingDecorations";
 import { Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 
 export default function CariLapangan() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [activeMode, setActiveMode] = useState<"preference" | "text" | "voice">("preference");
   
   // Preference States
@@ -97,7 +97,7 @@ export default function CariLapangan() {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = i18n.language === 'id' ? 'id-ID' : 'en-US';
+      recognitionRef.current.lang = 'id-ID';
 
       recognitionRef.current.onresult = (event: any) => {
         let finalTrans = '';
@@ -175,11 +175,8 @@ export default function CariLapangan() {
     let query = "";
     if (activeMode === "preference") {
       const locationAddonId = searchState.userCity ? ` di ${searchState.userCity}` : '';
-      const locationAddonEn = searchState.userCity ? ` in ${searchState.userCity}` : '';
 
-      query = i18n.language === 'id' 
-        ? `Cari lapangan ${sport}, budget sekitar Rp${budget.toLocaleString("id-ID")}, maksimal jarak ${distance}km dari lokasi saya${locationAddonId}.`
-        : `Find a ${sport} court, budget around Rp${budget.toLocaleString("id-ID")}, maximum distance ${distance}km from my location${locationAddonEn}.`;
+      query = `Cari lapangan ${sport}, budget sekitar Rp${budget.toLocaleString("id-ID")}, maksimal jarak ${distance}km dari lokasi saya${locationAddonId}.`;
     } else if (activeMode === "text") {
       query = text;
     } else if (activeMode === "voice") {

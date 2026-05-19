@@ -4,6 +4,7 @@ import { db } from "../lib/firebase";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { UserCircle2, ArrowRight, Loader2 } from "lucide-react";
+import FloatingDecorations from "../components/FloatingDecorations";
 
 const PREDEFINED_SPORTS = [
   "Soccer/Futsal", "Basketball", "Badminton", "Tennis", 
@@ -112,6 +113,7 @@ export default function Login() {
 
   return (
     <div className="flex-1 flex items-center justify-center p-4 sm:p-6 bg-[#F8F9FA] dark:bg-zinc-950 transition-colors">
+      <FloatingDecorations />
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border-[3px] border-slate-900 dark:border-slate-100 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] p-6 sm:p-8 overflow-hidden relative transition-colors">
         {!user || !needsSetup ? (
           <div className="space-y-6 flex flex-col items-center">

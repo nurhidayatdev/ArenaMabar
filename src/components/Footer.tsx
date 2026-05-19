@@ -13,7 +13,7 @@ export default function Footer() {
         </div>
 
         <div className="text-center text-slate-700 dark:text-slate-300 font-bold text-sm bg-slate-100 dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 px-4 py-2 rounded-full shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
-          &copy; {new Date().getFullYear()} ArenaMabar by Nur Hidayat. All rights reserved.
+          &copy; {new Date().getFullYear()} ArenaMabar. All rights reserved.
         </div>
 
         <div className="flex items-center gap-4">

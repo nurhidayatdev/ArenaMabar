@@ -82,8 +82,8 @@ export default function LandingPage() {
         {/* FEATURES SECTION */}
         <section className="w-full flex flex-col items-center mb-16 sm:mb-20">
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 mb-3">{t("landing.features.title")}</h2>
-            <p className="text-base text-slate-600 dark:text-slate-300 font-medium">{t("landing.features.subtitle")}</p>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 mb-3">Fitur Keren di ArenaMabar🔥</h2>
+            <p className="text-base text-slate-600 dark:text-slate-300 font-medium">Banyak fitur AI dan pencarian yang ngebantu mabar kamu.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
             <motion.div 
@@ -96,8 +96,8 @@ export default function LandingPage() {
               <div className="w-14 h-14 bg-indigo-200 dark:bg-indigo-800/80 border-2 border-slate-900 dark:border-slate-100 rounded-2xl rotate-3 mb-5 flex items-center justify-center">
                 <BrainCircuit className="w-7 h-7 text-indigo-700 dark:text-indigo-200 stroke-[2.5]" />
               </div>
-              <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-slate-100">{t("landing.feature1.title")}</h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">{t("landing.feature1.desc")}</p>
+              <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-slate-100">Coach AI</h3>
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">Konsultasi kondisi fisik, gerakan, nutrisi, langsung tanya ahlinya (buat guest atau user login!).</p>
             </motion.div>
 
             <motion.div 
@@ -110,8 +110,8 @@ export default function LandingPage() {
                <div className="w-14 h-14 bg-amber-200 dark:bg-amber-800/80 border-2 border-slate-900 dark:border-slate-100 rounded-2xl -rotate-3 mb-5 flex items-center justify-center">
                 <ShoppingBag className="w-7 h-7 text-amber-700 dark:text-amber-200 stroke-[2.5]" />
               </div>
-              <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-slate-100">{t("landing.feature2.title")}</h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">{t("landing.feature2.desc")}</p>
+              <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-slate-100">Rekomendasi Alat</h3>
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">Lagi cari sepatu basket ato raket badminton terbaru? Biar AI kami carikan rekomendasi dan estimasi harganya.</p>
             </motion.div>
 
             <motion.div 
@@ -124,8 +124,8 @@ export default function LandingPage() {
               <div className="w-14 h-14 bg-teal-200 dark:bg-teal-800/80 border-2 border-slate-900 dark:border-slate-100 rounded-2xl rotate-3 mb-5 flex items-center justify-center">
                 <MapPin className="w-7 h-7 text-teal-700 dark:text-teal-200 stroke-[2.5]" />
               </div>
-              <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-slate-100">{t("landing.feature3.title")}</h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">{t("landing.feature3.desc")}</p>
+              <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-slate-100">Cari Lapangan</h3>
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">Scan radar di radius sekitar kamu atau cari lokasi spesifik buat nemuin tempat main paling pas.</p>
             </motion.div>
 
             <motion.div 
@@ -138,8 +138,8 @@ export default function LandingPage() {
               <div className="w-14 h-14 bg-fuchsia-200 dark:bg-fuchsia-800/80 border-2 border-slate-900 dark:border-slate-100 rounded-2xl -rotate-3 mb-5 flex items-center justify-center">
                 <Calculator className="w-7 h-7 text-fuchsia-700 dark:text-fuchsia-200 stroke-[2.5]" />
               </div>
-              <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-slate-100">{t("landing.feature4.title")}</h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">{t("landing.feature4.desc")}</p>
+              <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-slate-100">Kalkulator Mabar</h3>
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">Males hitung manual tagihan patungan per orang? Pakai fitur hitung cepat dan share hasilnya di WA!</p>
             </motion.div>
           </div>
         </section>
@@ -147,9 +147,9 @@ export default function LandingPage() {
         {/* MEMBERSHIP BENEFITS SECTION */}
         <section className="w-full flex flex-col items-center mb-16 sm:mb-20 pt-4">
           <div className="mb-10 text-center w-full">
-            <h2 className="text-3xl font-black mb-3 text-slate-900 dark:text-slate-100">{t("landing.benefits.title_start")} <span className="text-indigo-600 dark:text-indigo-400">{t("landing.benefits.title_end")}</span></h2>
+            <h2 className="text-3xl font-black mb-3 text-slate-900 dark:text-slate-100">Kenapa Harus <span className="text-indigo-600 dark:text-indigo-400">Login?</span></h2>
             <p className="text-slate-600 dark:text-slate-400 font-bold text-base max-w-xl mx-auto">
-              {t("landing.benefits.subtitle")}
+              Banyak banget tambahan fitur yang bisa kamu dapetin biar makin asik mabarnya!
             </p>
           </div>
 
@@ -159,17 +159,17 @@ export default function LandingPage() {
               <div className="w-14 h-14 bg-slate-100 dark:bg-zinc-800 border-2 border-slate-900 dark:border-slate-100 rounded-full flex items-center justify-center mb-6">
                 <CheckCircle2 className="w-6 h-6 text-slate-500" />
               </div>
-              <h3 className="text-2xl font-black mb-2 text-slate-900 dark:text-slate-100">{t("landing.benefits.guest.title")}</h3>
+              <h3 className="text-2xl font-black mb-2 text-slate-900 dark:text-slate-100">Guest / Tamu</h3>
               <p className="text-slate-500 dark:text-slate-400 font-bold text-sm mb-6 pb-6 border-b-2 border-slate-100 dark:border-slate-800">
-                {t("landing.benefits.guest.desc")}
+                Cocok buat kamu yang pengen langsung sat-set nyobain ArenaMabar tanpa mikir panjang.
               </p>
               
               <ul className="space-y-4 mb-auto">
                 {[
-                  t("landing.benefits.guest.item1"),
-                  t("landing.benefits.guest.item2"),
-                  t("landing.benefits.guest.item3"),
-                  t("landing.benefits.guest.item4")
+                  "Akses fitur pencarian lapangan terdekat",
+                  "Dapetin rekomendasi sepatu/raket dari AI",
+                  "Bisa pakai kalkulator patungan buat hitung mabar",
+                  "Konsultasi standar sama Coach AI"
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-4 text-slate-600 dark:text-slate-300 font-bold text-sm leading-relaxed">
                     <CheckCircle2 className="w-5 h-5 shrink-0 text-slate-400" />
@@ -188,18 +188,18 @@ export default function LandingPage() {
               </div>
               
               <h3 className="text-2xl font-black mb-2 text-white relative z-10 flex items-center gap-2">
-                {t("landing.benefits.login.title")} <span className="bg-amber-300 text-slate-900 text-xs px-2 py-1 rounded-md uppercase tracking-wider font-bold -rotate-6">{t("landing.benefits.login.badge")}</span>
+                Udah Login <span className="bg-amber-300 text-slate-900 text-xs px-2 py-1 rounded-md uppercase tracking-wider font-bold -rotate-6">PRO</span>
               </h3>
               <p className="text-indigo-100 dark:text-indigo-100 font-bold text-sm mb-6 pb-6 border-b-2 border-white/20 relative z-10">
-                {t("landing.benefits.login.desc")}
+                Pengalaman maksimal yang dipersonalisasi khusus buat profil dan kesukaan kamu.
               </p>
               
               <ul className="space-y-4 mb-8 relative z-10 flex-grow">
                 {[
-                  t("landing.benefits.login.item1"),
-                  t("landing.benefits.login.item2"),
-                  t("landing.benefits.login.item3"),
-                  t("landing.benefits.login.item4"),
+                  "Simpan Lapangan Favorit biar gampang nyarinya lagi",
+                  "Simpan Wishlist sepatu / raket incaranmu",
+                  "Coach AI bakal kenal siapa nama kamu",
+                  "Rekomendasi Coach AI & Rekomendasi Alat disesuaikan otomatis dengan olahraga kesukaanmu",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-4 font-bold text-sm leading-relaxed text-indigo-50">
                     <Zap className="w-5 h-5 shrink-0 text-amber-300 fill-current" />
@@ -215,15 +215,15 @@ export default function LandingPage() {
         <section className="w-full flex flex-col items-center mb-16 sm:mb-20 pt-4">
           <div className="mb-10 text-center w-full">
             <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 mb-3 uppercase tracking-tight">
-              {t("landing.faq.title_start")} <span className="text-indigo-600 dark:text-indigo-400">{t("landing.faq.title_end")}</span>
+              Tanya <span className="text-indigo-600 dark:text-indigo-400">Jawab</span>
             </h2>
             <p className="text-slate-600 dark:text-slate-400 font-bold text-base max-w-xl mx-auto">
-              {t("landing.faq.subtitle")}
+              Kumpulan pertanyaan yang sering ditanyakan seputar ArenaMabar.
             </p>
           </div>
 
           <div className="w-full space-y-4 md:space-y-6 flex flex-col z-10 mb-12">
-            {[1,2,3,4,5,6,7].map((idx) => (
+            {faqs.map((faq, idx) => (
               <div 
                 key={idx} 
                 className={`w-full bg-white dark:bg-zinc-900 rounded-3xl border-2 border-slate-900 dark:border-slate-100 overflow-hidden transition-all ${openIdx === idx ? "shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] -translate-y-1" : "shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"}`}
@@ -232,7 +232,7 @@ export default function LandingPage() {
                   onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
                   className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
                 >
-                  <h3 className="text-base font-bold pr-4 text-slate-900 dark:text-slate-100">{t(`landing.faq.q${idx}`)}</h3>
+                  <h3 className="text-base font-bold pr-4 text-slate-900 dark:text-slate-100">{faq.q}</h3>
                   <div className={`w-8 h-8 shrink-0 rounded-full border-2 border-slate-900 dark:border-slate-100 flex items-center justify-center transition-transform duration-300 ${openIdx === idx ? "rotate-180 bg-amber-300 dark:bg-amber-500 text-slate-900" : "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-slate-100"}`}>
                     <ChevronDown className="w-5 h-5" />
                   </div>
@@ -241,7 +241,7 @@ export default function LandingPage() {
                 <div className={`overflow-hidden transition-all duration-300 ${openIdx === idx ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
                   <div className="p-5 pt-0 text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
                     <hr className="border-slate-200 dark:border-slate-700 mb-4" />
-                    {t(`landing.faq.a${idx}`)}
+                    {faq.a}
                   </div>
                 </div>
               </div>
@@ -250,15 +250,15 @@ export default function LandingPage() {
 
           <div className="w-full bg-indigo-200 dark:bg-indigo-900 text-slate-900 dark:text-slate-100 rounded-[32px] p-6 md:p-8 border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] text-center flex flex-col items-center transition-colors">
             <MessageCircle className="w-10 h-10 mb-3 text-indigo-700 dark:text-indigo-300" />
-            <h2 className="text-xl md:text-2xl font-black mb-2">{t("landing.faq.more.title")}</h2>
+            <h2 className="text-xl md:text-2xl font-black mb-2">Punya Pertanyaan Lain?</h2>
             <p className="mb-6 text-sm font-medium max-w-md opacity-80">
-              {t("landing.faq.more.desc")}
+              Kalau kamu nemu bug, punya ide fitur baru, atau mau kerjasama, langsung aja sapa Coach AI!
             </p>
             <Link 
               to="/coach" 
               className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wider hover:-translate-y-1 shadow-[2px_2px_0px_0px_rgba(15,23,42,0.5)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] border-2 border-slate-900 dark:border-slate-100 transition-all"
             >
-              {t("landing.faq.more.btn")}
+              Tanya Coach AI
             </Link>
           </div>
         </section>

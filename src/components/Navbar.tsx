@@ -18,19 +18,6 @@ export default function Navbar() {
   });
   const [currentTime, setCurrentTime] = useState("");
 
-  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
-  const languages = [
-    { code: "id", label: "ID" },
-    { code: "en", label: "EN" },
-    { code: "es", label: "ES" },
-    { code: "zh", label: "ZH" }
-  ];
-
-  const changeLanguage = (code: string) => {
-    i18n.changeLanguage(code);
-    setIsLangMenuOpen(false);
-  };
-
   useEffect(() => {
     setIsMobileMenuOpen(false); // Close menu on route change
   }, [location]);
@@ -135,7 +122,7 @@ export default function Navbar() {
     { name: t("nav.shopper"), path: "/shopper" },
     { name: t("nav.calculator"), path: "/kalkulator" },
     { name: t("nav.coach"), path: "/coach" },
-    { name: user ? "PROFIL" : "MASUK", path: user ? "/profile" : "/login" }
+    { name: user ? "Profil" : "Masuk", path: user ? "/profile" : "/login" }
   ];
 
   return (
@@ -176,29 +163,6 @@ export default function Navbar() {
             {theme === 'light' ? <Moon className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Sun className="w-3.5 h-3.5 md:w-4 md:h-4" />}
           </button>
 
-          <div className="relative">
-            <button
-              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-zinc-900 border-2 border-slate-200 dark:border-slate-100 rounded-full text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span className="uppercase">{i18n.language.substring(0, 2)}</span>
-            </button>
-            {isLangMenuOpen && (
-              <div className="absolute top-full right-0 mt-2 bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-slate-100 rounded-xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 overflow-hidden flex flex-col w-20">
-                {languages.map((l) => (
-                  <button 
-                    key={l.code}
-                    onClick={() => changeLanguage(l.code)}
-                    className="px-4 py-2 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 border-b-2 border-slate-100 dark:border-slate-100 last:border-0 text-left uppercase text-slate-700 dark:text-slate-300"
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          
           <div 
             onClick={() => requestLocation(true)}
             className="text-right hidden sm:block cursor-pointer group px-2 py-1 -mr-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"

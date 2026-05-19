@@ -4,7 +4,7 @@ import { db } from "../lib/firebase";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { Loader2, ArrowRight, LogOut, CheckCircle2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import FloatingDecorations from "../components/FloatingDecorations";
 
 const PREDEFINED_SPORTS = [
   "Soccer/Futsal", "Basketball", "Badminton", "Tennis", 
@@ -13,7 +13,6 @@ const PREDEFINED_SPORTS = [
 ];
 
 export default function Profile() {
-  const { t } = useTranslation();
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState({
@@ -82,7 +81,7 @@ export default function Profile() {
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert(t("profile.error"));
+      alert("Failed to update profile.");
     } finally {
       setIsSaving(false);
     }
@@ -121,6 +120,7 @@ export default function Profile() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 bg-[#F8F9FA] dark:bg-zinc-950 transition-colors py-10 min-h-[calc(100vh-5rem)]">
+      <FloatingDecorations />
       <div className="w-full max-w-md flex flex-col gap-6">
         <div className="flex items-center justify-between bg-white dark:bg-zinc-900 rounded-3xl border-[3px] border-slate-900 dark:border-slate-100 p-5 sm:p-6 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
           <div className="flex items-center gap-4">
@@ -128,7 +128,7 @@ export default function Profile() {
                {user.email?.charAt(0).toUpperCase()}
              </div>
              <div>
-               <h1 className="text-xl font-black text-slate-900 dark:text-slate-100">{profileData.displayName || t("profile.default_name")}</h1>
+               <h1 className="text-xl font-black text-slate-900 dark:text-slate-100">{profileData.displayName || "Pengguna"}</h1>
                <p className="text-xs font-medium text-slate-500 overflow-hidden text-ellipsis max-w-[150px] sm:max-w-full">{user.email}</p>
              </div>
           </div>
@@ -141,10 +141,10 @@ export default function Profile() {
         </div>
 
         <div className="bg-white dark:bg-zinc-900 rounded-3xl border-[3px] border-slate-900 dark:border-slate-100 p-5 sm:p-6 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] relative z-10">
-          <h2 className="text-xl font-black uppercase tracking-wide mb-6">{t("profile.title")}</h2>
+          <h2 className="text-xl font-black uppercase tracking-wide mb-6">Edit Profil</h2>
           <form onSubmit={handleUpdate} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900 dark:text-slate-100">{t("profile.name_label")}</label>
+              <label className="text-sm font-bold text-slate-900 dark:text-slate-100">Nama Panggilan</label>
               <input
                 type="text"
                 required
@@ -154,7 +154,7 @@ export default function Profile() {
               />
             </div>
             <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">{t("profile.sports_label")}</label>
+              <label className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">Olahraga Favorit</label>
               <div className="flex flex-wrap gap-2">
                 {allDisplayedSports.map(sport => {
                   const isSelected = profileData.favoriteSports.includes(sport);
@@ -187,7 +187,7 @@ export default function Profile() {
                 onChange={e => setCustomSport(e.target.value)}
                 onKeyDown={handleCustomSportKeyDown}
                 className="w-full bg-white dark:bg-zinc-950 border-[3px] border-slate-900 dark:border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-0 mt-2 placeholder:text-slate-400 placeholder:font-bold shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
-                placeholder={t("profile.add_sport")}
+                placeholder="Tambah olahraga lain (tekan Enter)..."
               />
             </div>
             <button
@@ -195,12 +195,12 @@ export default function Profile() {
               disabled={isSaving}
               className="w-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold px-6 py-4 rounded-xl border-2 border-slate-900 dark:border-slate-100 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 mt-4"
             >
-              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t("profile.btn_save")} <ArrowRight className="w-5 h-5" /></>}
+              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Simpan Perubahan <ArrowRight className="w-5 h-5" /></>}
             </button>
             {saved && (
               <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold mt-4 animate-fade-in">
                 <CheckCircle2 className="w-5 h-5" />
-                <span>{t("profile.saved")}</span>
+                <span>Profil diperbarui!</span>
               </div>
             )}
           </form>
