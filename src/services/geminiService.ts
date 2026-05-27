@@ -57,7 +57,7 @@ Contoh:
     // Construct the payload for history. We omit the text prompt from history.
     // Actually we can pass history explicitly to GoogleGenAI
     const chatSession = ai.chats.create({
-      model: "gemini-3.1-flash-lite-preview",
+      model: "gemini-3.1-flash-lite",
       config: {
         systemInstruction: prompt,
       }
@@ -72,7 +72,7 @@ Contoh:
 
     // Insert prompt at the beginning or use systemInstruction
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
+      model: "gemini-3.1-flash-lite",
       contents: [
         { role: "user", parts: [{ text: prompt }] },
         ...contents
@@ -100,7 +100,7 @@ Bahasa yang digunakan: Gaul tapi profesional, to the point.
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
+      model: "gemini-3.1-flash-lite",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -193,7 +193,7 @@ Buat data JSON terkait preferensi. JANGAN mencari lapangan, cukup identifikasi o
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
+      model: "gemini-3.1-flash-lite",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -255,7 +255,7 @@ export async function fetchShopperRecommendations(sport: string, category: strin
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
+      model: "gemini-3.1-flash-lite",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
